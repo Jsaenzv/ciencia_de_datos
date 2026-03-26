@@ -1,6 +1,3 @@
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
 # Tratado de Ciencia de Datos: fundamentos, métodos y criterio experto
 
 ## Prólogo: qué significa realmente estudiar ciencia de datos
@@ -1928,10 +1925,3 @@ Una buena respuesta suele seguir esta secuencia: definir el problema, formalizar
 Dominar ciencia de datos es pasar de la ejecución instrumental al razonamiento científico aplicado. Un profesional sólido no se define por conocer más librerías, sino por poder explicar por qué una representación es válida, por qué una métrica es coherente con el costo del error, por qué un experimento está bien diseñado y por qué un resultado merece confianza.
 
 Esta obra buscó construir ese recorrido completo: desde la formulación del problema hasta la evaluación rigurosa, desde los modelos clásicos hasta enfoques más complejos, desde la técnica matemática hasta la responsabilidad interpretativa. Si el lector puede ahora plantear problemas con precisión, diseñar pipelines sin leakage, comparar modelos con criterio, interpretar métricas en contexto y reconocer límites de inferencia, entonces alcanzó el objetivo central de la materia: un dominio profundo, transferible y profesional de la ciencia de datos.
-<<<<<<< ours
-<<<<<<< ours
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
