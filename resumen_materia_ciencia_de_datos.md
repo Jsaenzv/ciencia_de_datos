@@ -1,1410 +1,1937 @@
-# Resumen integral de Ciencia de Datos
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
+# Tratado de Ciencia de Datos: fundamentos, métodos y criterio experto
 
-## 1. MAPA DE LA MATERIA
+## Prólogo: qué significa realmente estudiar ciencia de datos
 
-### 1.1 Los grandes ejes que organizan toda la cursada
+La ciencia de datos no es una colección de algoritmos sueltos ni una carrera por obtener el mejor *score* en una plataforma. Es una disciplina de razonamiento empírico: parte de fenómenos del mundo real, construye representaciones matemáticas de esos fenómenos, formula hipótesis sobre patrones, estima modelos y, finalmente, toma decisiones bajo incertidumbre. Si se estudia de manera superficial, se vuelve un recetario. Si se estudia con profundidad, se transforma en una forma de pensar.
 
-La materia, vista como un todo, no trata solamente de “aprender algoritmos”. Su lógica real es mucho más interesante: enseña a pasar de **datos crudos** a **decisiones justificadas**. Si uno mira juntos los contenidos teóricos, los trabajos prácticos y los parciales, aparece un recorrido bastante claro.
+Este texto asume que la persona lectora puede comenzar con conocimientos mínimos y, al mismo tiempo, aspira a dominar la materia con nivel alto. Por eso cada tema se desarrolla en capas: primero la intuición, luego el problema que obliga a precisarla, después la formalización, y finalmente las consecuencias prácticas, los límites y los errores frecuentes. La meta no es memorizar términos; es adquirir criterio técnico.
 
-#### Eje 1 — Entender qué problema tengo delante
-Antes de pensar en modelos, la materia exige reconocer la estructura básica del problema.
+En todo el tratado aparecerá una idea central: **todo modelo es una simplificación**. Un modelo útil no “copia” la realidad, sino que captura una estructura relevante para un objetivo definido. De allí surge una responsabilidad metodológica: evaluar permanentemente qué información se pierde al simplificar, qué supuestos se introducen y qué consecuencias tienen esas decisiones.
 
-- ¿La variable objetivo es categórica? Entonces probablemente estamos ante **clasificación**.
-- ¿La salida es numérica continua? Entonces hablamos de **regresión**.
-- ¿No hay variable objetivo y queremos encontrar grupos? Entonces entramos en **clustering**.
+---
 
-Este eje parece elemental, pero en realidad sostiene casi todo lo demás. Si uno confunde el tipo de problema, después elige mal la métrica, mal el modelo y hasta mal el preprocesamiento.
+## Capítulo 1. Planteamiento del problema: antes del algoritmo, la pregunta correcta
 
-#### Eje 2 — Leer el dataset antes de modelar
-El análisis exploratorio no es un adorno previo al modelado. En esta materia aparece como un paso de diagnóstico.
+### 1.1 Del problema real al problema de datos
 
-Acá se aprende a preguntar:
+Una organización no pide “entrenar XGBoost”; pide reducir fraude, predecir demanda, priorizar pacientes, optimizar logística o comprender segmentos de usuarios. La primera tarea científica consiste en traducir ese objetivo en una pregunta operativa y evaluable.
 
-- qué variables tengo,
-- qué significan,
-- cómo se distribuyen,
-- si hay faltantes,
-- si hay outliers,
-- si las variables se relacionan,
-- si conviene crear features nuevas,
-- si hay transformaciones necesarias.
+Formalmente, cuando el objetivo es predictivo supervisado, buscamos una función
 
-La idea profunda es esta: **un modelo nunca arregla automáticamente un mal entendimiento de los datos**.
+\[
+f: \mathcal{X} \to \mathcal{Y}
+\]
 
-#### Eje 3 — Preparar los datos para que el algoritmo pueda aprender
-Muchos temas de la materia aparecen porque los datos reales no vienen listos para usar.
+que aproxime la relación entre un espacio de entradas \(\mathcal{X}\) (features) y un espacio de salidas \(\mathcal{Y}\) (target). Esta expresión, aparentemente simple, obliga a tomar decisiones difíciles: qué es una observación, qué información está disponible al momento de predecir, qué horizonte temporal se considera y qué definición exacta tiene la variable objetivo.
 
-Por eso tienen tanto peso:
+Si estas definiciones quedan vagas, todo lo posterior se vuelve frágil. Por ejemplo, “predecir abandono de clientes” exige definir abandono (¿30 días sin actividad? ¿cancelación explícita?) y fijar ventana temporal de observación.
 
-- imputación de faltantes,
-- tratamiento de outliers,
-- encoding de variables categóricas,
-- escalado o normalización,
-- discretización,
-- transformación de variables sesgadas,
-- feature engineering.
+### 1.2 Tipos de aprendizaje y naturaleza del target
 
-El mensaje de fondo es que modelar no consiste solo en “correr sklearn”, sino en **representar bien el problema**.
+En aprendizaje supervisado la variable objetivo está observada en entrenamiento. Dos familias dominan:
 
-#### Eje 4 — Evaluar correctamente y no engañarse con resultados lindos
-Este es uno de los núcleos más importantes de toda la materia.
+- **Clasificación**: \(y\) pertenece a un conjunto discreto de clases.
+- **Regresión**: \(y\) es continua o cuasi continua.
 
-No alcanza con entrenar un modelo y obtener un número alto. La pregunta correcta es: **¿ese modelo generaliza o solo memorizó?**
+En aprendizaje no supervisado no hay \(y\) observada: se buscan estructuras latentes (agrupamientos, factores de variación, compresión de información).
 
-Por eso aparecen una y otra vez:
+La distinción no es taxonómica: determina métricas, pérdidas, validación y riesgos de error. Un error en clasificación puede tener costo asimétrico (falso negativo más grave que falso positivo); en regresión suele importar magnitud del desvío.
 
-- train/test split,
-- validación cruzada,
-- comparación entre performance de entrenamiento y test,
-- matrices de confusión,
-- métricas según el tipo de problema,
-- sesgo y varianza,
-- overfitting y underfitting.
+### 1.3 Causalidad versus predicción
 
-Este eje es casi una filosofía de trabajo: en ciencia de datos no gana el modelo que mejor queda en entrenamiento, sino el que mejor se comporta frente a datos nuevos.
+Un error clásico de estudiantes avanzados: creer que un buen predictor demuestra causalidad. No necesariamente.
 
-#### Eje 5 — Elegir y defender modelos
-La materia recorre varias familias de métodos, pero no con el espíritu de memorizar catálogos. Lo que se espera es entender qué resuelve cada técnica, qué costo paga y cuándo tiene sentido usarla.
+- **Predicción**: interesa \(P(Y\mid X)\), aunque el mecanismo causal no esté identificado.
+- **Causalidad**: interesa el efecto de intervenir \(do(X=x)\) sobre \(Y\).
 
-Aparecen con más fuerza:
+Un modelo puede predecir muy bien “ventas” usando “monto de publicidad” y, aun así, no identificar el efecto causal de aumentar presupuesto publicitario si hay variables de confusión.
 
-- árboles de decisión,
-- Random Forest,
-- regresión lineal,
-- regresión logística,
-- XGBoost,
-- K-Means,
-- PCA, t-SNE, ISOMAP,
+### 1.4 Función de pérdida y noción de riesgo
+
+Aprender un modelo implica minimizar pérdida esperada:
+
+\[
+R(f)=\mathbb{E}_{(X,Y)\sim \mathcal{D}}\left[L\big(Y,f(X)\big)\right]
+\]
+
+donde:
+
+- \(\mathcal{D}\): distribución real (desconocida) de datos,
+- \(L\): pérdida (0-1, cuadrática, absoluta, log-loss, etc.),
+- \(R(f)\): riesgo poblacional.
+
+Como \(\mathcal{D}\) es desconocida, minimizamos riesgo empírico sobre muestra:
+
+\[
+\hat R_n(f)=\frac{1}{n}\sum_{i=1}^{n}L\big(y_i,f(x_i)\big)
+\]
+
+La distancia entre \(\hat R_n\) y \(R\) explica por qué existe la generalización como problema central del curso.
+
+---
+
+## Capítulo 2. Estructura de datos, calidad y lectura crítica del dataset
+
+### 2.1 Unidad de análisis y granularidad
+
+Antes de cualquier transformación hay que fijar la unidad de observación: cliente, transacción, sesión, día, documento, píxel, etc. Muchos errores nacen de mezclar granularidades incompatibles. Si combinamos datos diarios de clima con ventas mensuales sin agregación coherente, generamos ruido estructural.
+
+### 2.2 Tipos de variables y consecuencias metodológicas
+
+- Numéricas continuas/discretas.
+- Categóricas nominales/ordinales.
+- Temporales.
+- Texto, imagen, audio.
+
+Cada tipo impone operaciones válidas y no válidas. Promediar códigos postales no tiene significado semántico; ordenar categorías nominales induce una estructura inexistente.
+
+### 2.3 Calidad de datos: completitud, consistencia, validez
+
+Un diagnóstico serio exige al menos:
+
+1. **Completitud**: proporción y patrón de faltantes.
+2. **Consistencia**: reglas internas (edad negativa, fechas invertidas, duplicados).
+3. **Validez**: coherencia con dominio (rango plausible, unidades, definiciones).
+4. **Trazabilidad**: origen y transformación de columnas.
+
+### 2.4 Mecanismos de datos faltantes
+
+No todos los faltantes son iguales:
+
+- **MCAR** (*Missing Completely At Random*): ausencia independiente de variables observadas y no observadas.
+- **MAR** (*Missing At Random*): ausencia depende de variables observadas.
+- **MNAR** (*Missing Not At Random*): ausencia depende del propio valor faltante u otras no observadas.
+
+La estrategia de imputación debe considerar este mecanismo. Tratar MNAR como MCAR puede sesgar inferencias y degradar predicción.
+
+### 2.5 Análisis exploratorio (EDA) como etapa inferencial preliminar
+
+El EDA no es decoración gráfica. Cumple funciones concretas:
+
+- detectar asimetrías y colas pesadas,
+- identificar outliers estructurales y errores de carga,
+- examinar desbalance de clases,
+- revelar relaciones no lineales,
+- orientar ingeniería de variables y elección de métricas.
+
+En práctica experta, cada gráfico responde una pregunta explícita, no un ritual de notebook.
+
+---
+
+## Capítulo 3. Preprocesamiento y representación: construir un espacio donde aprender sea posible
+
+### 3.1 Principio rector
+
+Los modelos aprenden en el espacio de representación que les entregamos. Una representación pobre limita incluso al mejor algoritmo.
+
+### 3.2 Imputación con criterio
+
+Estrategias básicas:
+
+- media/mediana/moda,
+- imputación por grupo (condicionada a segmento),
+- kNN imputation,
+- modelos de imputación multivariada.
+
+Regla fundamental: ajustar imputadores **solo en train** y aplicar a validación/test. Ajustar con toda la base produce *data leakage*.
+
+### 3.3 Outliers: error, rareza o señal
+
+Un valor extremo puede ser:
+
+1. error de medición,
+2. evento raro legítimo,
+3. subpoblación distinta.
+
+Acciones posibles: corrección, recorte, transformación logarítmica, métodos robustos, modelado separado por régimen. Eliminar sin justificación suele destruir información de alto valor.
+
+### 3.4 Codificación de categóricas
+
+- **One-hot encoding**: evita orden artificial; puede explotar dimensionalidad.
+- **Ordinal encoding**: válido solo si existe orden semántico real.
+- **Target/mean encoding**: potente en alta cardinalidad, pero de alto riesgo de fuga si no se aplica con validación interna.
+
+### 3.5 Escalado y normalización
+
+Sea una variable \(x\):
+
+- Estandarización: \(z=(x-\mu)/\sigma\)
+- Min-max: \(x'=(x-x_{\min})/(x_{\max}-x_{\min})\)
+
+Modelos basados en distancia/gradiente (KNN, SVM, redes, regresión regularizada) suelen exigir escalas comparables; árboles y ensambles de árboles son menos sensibles.
+
+### 3.6 Ingeniería de variables
+
+Es la etapa donde se incorpora conocimiento de dominio en forma computable:
+
+- ratios (ingreso/gasto),
+- interacciones (\(x_1x_2\)),
+- transformaciones temporales (lag, rolling mean),
+- atributos de texto (longitud, TF-IDF, embeddings),
+- señales de comportamiento (recencia, frecuencia, monetización).
+
+Una buena variable puede superar mejoras obtenidas por cambio de algoritmo.
+
+---
+
+## Capítulo 4. Partición, validación y evaluación: medir sin autoengaño
+
+### 4.1 Generalización
+
+El objetivo no es minimizar error histórico, sino error futuro. Por eso distinguimos:
+
+- entrenamiento,
+- validación (selección/tuning),
+- test final (estimación no sesgada del desempeño final).
+
+### 4.2 Validación cruzada
+
+En *k-fold cross-validation*, se divide train en \(k\) pliegues. Cada corrida entrena con \(k-1\) y valida con el restante. Resultado: media y dispersión del desempeño.
+
+Ventaja: reduce dependencia de una sola partición.
+Costo: mayor tiempo computacional.
+
+### 4.3 Métricas de clasificación
+
+Sea matriz de confusión con TP, FP, TN, FN:
+
+\[
+\text{Accuracy}=\frac{TP+TN}{TP+TN+FP+FN}
+\]
+
+\[
+\text{Precision}=\frac{TP}{TP+FP},\qquad
+\text{Recall}=\frac{TP}{TP+FN}
+\]
+
+\[
+F_1=2\frac{\text{Precision}\cdot \text{Recall}}{\text{Precision}+\text{Recall}}
+\]
+
+Interpretación:
+
+- precisión alta: pocos falsos positivos,
+- recall alto: pocos falsos negativos,
+- F1 alto: equilibrio entre ambos.
+
+En clases desbalanceadas, accuracy puede ser engañosa.
+
+### 4.4 Curvas ROC y PR
+
+- ROC: TPR vs FPR para distintos umbrales.
+- PR: Precision vs Recall; más informativa con fuerte desbalance.
+
+Elegir umbral es decisión de negocio, no mero detalle técnico.
+
+### 4.5 Métricas de regresión
+
+\[
+MAE=\frac{1}{n}\sum|y_i-\hat y_i|
+\]
+
+\[
+MSE=\frac{1}{n}\sum(y_i-\hat y_i)^2,
+\qquad RMSE=\sqrt{MSE}
+\]
+
+\(MSE/RMSE\) penalizan más errores grandes; \(MAE\) es más robusta a outliers.
+
+### 4.6 Calibración probabilística
+
+En problemas de decisión, no basta ranking correcto: importa que probabilidades sean confiables. Un modelo bien calibrado que predice 0.8 debería acertar aproximadamente 80% de veces en ese estrato.
+
+---
+
+## Capítulo 5. Modelos supervisados I: regresión lineal y logística con profundidad
+
+### 5.1 Regresión lineal: hipótesis y geometría
+
+Modelo:
+
+\[
+\hat y = \beta_0 + \beta_1x_1+\cdots+\beta_px_p = X\beta
+\]
+
+Se estima típicamente por mínimos cuadrados ordinarios (OLS):
+
+\[
+\hat\beta = \arg\min_{\beta}\|y-X\beta\|_2^2
+\]
+
+Solución cerrada (si \(X^TX\) invertible):
+
+\[
+\hat\beta=(X^TX)^{-1}X^Ty
+\]
+
+Interpretación clave: cada \(\beta_j\) mide cambio esperado en \(y\) por unidad de \(x_j\), manteniendo las demás constantes.
+
+#### Supuestos clásicos
+
+1. Linealidad en parámetros.
+2. Independencia de errores.
+3. Homocedasticidad.
+4. Normalidad de errores (para inferencia clásica).
+5. Ausencia de multicolinealidad severa.
+
+Violarlos no siempre invalida predicción, pero sí cambia interpretación e inferencia.
+
+### 5.2 Regularización: sesgo-varianza en acción
+
+Ridge:
+
+\[
+\arg\min_\beta \|y-X\beta\|_2^2 + \lambda\|\beta\|_2^2
+\]
+
+Lasso:
+
+\[
+\arg\min_\beta \|y-X\beta\|_2^2 + \lambda\|\beta\|_1
+\]
+
+- Ridge contrae coeficientes de forma suave.
+- Lasso puede llevar coeficientes exactamente a cero (selección implícita).
+
+\(\lambda\) controla compromiso ajuste-complejidad.
+
+### 5.3 Regresión logística
+
+Para \(y\in\{0,1\}\):
+
+\[
+P(y=1\mid x)=\sigma(z)=\frac{1}{1+e^{-z}},\quad z=\beta_0+\beta^Tx
+\]
+
+Linealizamos en *log-odds*:
+
+\[
+\log\frac{p}{1-p}=\beta_0+\beta^Tx
+\]
+
+Entrenamiento por máxima verosimilitud (equivale a minimizar log-loss).
+
+Interpretación de coeficiente \(\beta_j\): incremento unitario en \(x_j\) cambia log-odds en \(\beta_j\), manteniendo resto fijo.
+
+Error típico: interpretar coeficiente logístico como cambio lineal directo de probabilidad; no es así, depende del punto de operación por no linealidad sigmoide.
+
+---
+
+## Capítulo 6. Modelos supervisados II: árboles, ensambles y boosting
+
+### 6.1 Árboles de decisión
+
+Un árbol divide recursivamente espacio de features con reglas tipo \(x_j < t\). Ventajas: interpretabilidad, manejo natural de no linealidades e interacciones.
+
+Criterios de división:
+
+- Clasificación: Gini, entropía.
+- Regresión: reducción de varianza/MSE.
+
+Riesgo: sobreajuste en árboles profundos.
+
+### 6.2 Bagging y Random Forest
+
+**Bagging**: entrenar múltiples modelos en muestras *bootstrap* y promediar/votar.
+
+**Random Forest** añade aleatoriedad en selección de variables por split, reduciendo correlación entre árboles y mejorando varianza del ensamble.
+
+Intuición formal de reducción de varianza: promediar estimadores débiles pero relativamente des-correlacionados disminuye varianza global.
+
+### 6.3 Boosting y XGBoost
+
+Boosting entrena secuencialmente modelos débiles que corrigen errores/residuos del conjunto previo.
+
+En gradiente boosting, se minimiza una función objetivo mediante descenso funcional en espacio de funciones:
+
+\[
+F_m(x)=F_{m-1}(x)+\eta h_m(x)
+\]
+
+donde \(h_m\) aproxima el gradiente negativo de la pérdida.
+
+XGBoost añade regularización explícita, manejo eficiente de faltantes y optimización de alto rendimiento.
+
+### 6.4 Cuándo usar cada familia
+
+- Lineales: interpretabilidad y baseline sólido.
+- Árboles simples: reglas explicables.
+- Random Forest: robustez con bajo tuning.
+- Boosting: alto desempeño con tuning cuidadoso.
+
+No existe “mejor universal”; depende de tamaño de datos, ruido, necesidad de explicación, latencia, mantenimiento y riesgo de drift.
+
+---
+
+## Capítulo 7. Aprendizaje no supervisado: clustering y reducción de dimensionalidad
+
+### 7.1 Qué problema resuelve el clustering
+
+Clustering busca particionar observaciones en grupos internamente similares y externamente distintos sin etiquetas previas. Es descubrimiento de estructura, no clasificación oculta.
+
+### 7.2 K-means en profundidad
+
+Objetivo:
+
+\[
+\min_{C_1,\dots,C_k} \sum_{j=1}^k \sum_{x_i\in C_j}\|x_i-\mu_j\|^2
+\]
+
+con \(\mu_j\) centroide del cluster \(C_j\).
+
+Algoritmo iterativo:
+
+1. Inicializar centroides.
+2. Asignar cada punto al centroide más cercano.
+3. Recalcular centroides.
+4. Repetir hasta convergencia local.
+
+Limitaciones:
+
+- asume clusters aproximadamente esféricos,
+- sensible a escala y outliers,
+- requiere elegir \(k\).
+
+### 7.3 Selección de k e interpretación
+
+Métodos: codo (*elbow*), silueta, estabilidad bajo remuestreo. Ninguno sustituye juicio de dominio. Un \(k\) estadísticamente plausible puede carecer de significado de negocio.
+
+### 7.4 Clustering jerárquico y DBSCAN
+
+- **Jerárquico**: construye dendrograma; útil para explorar estructura multiescala.
+- **DBSCAN**: define clusters como regiones densas; detecta ruido y formas arbitrarias, evita fijar \(k\), pero requiere parámetros de densidad adecuados.
+
+### 7.5 PCA: compresión lineal y varianza explicada
+
+PCA busca direcciones ortogonales de máxima varianza. Si \(X\) está centrada, se diagonaliza matriz de covarianza:
+
+\[
+\Sigma=\frac{1}{n-1}X^TX
+\]
+
+Autovectores \(v_j\) definen componentes principales; autovalores \(\lambda_j\) cuantifican varianza explicada.
+
+Proyección en primeras \(m\) componentes reduce dimensión conservando estructura dominante.
+
+Riesgo didáctico: creer que “menos dimensión siempre mejora”. Puede perder señales discriminantes de baja varianza pero alta relevancia predictiva.
+
+---
+
+## Capítulo 8. Redes neuronales y aprendizaje profundo: de la neurona al entrenamiento estable
+
+### 8.1 Perceptrón y composición de funciones
+
+Una neurona calcula:
+
+=======
+# Ciencia de Datos: tratado de fundamentos, modelado y criterio profesional
+
+## Introducción general: qué significa dominar ciencia de datos
+
+La ciencia de datos no es una colección de algoritmos ni una secuencia mecánica de pasos. Es una disciplina de inferencia, representación y decisión. Su objeto real de estudio no son solamente los datos, sino la relación entre un fenómeno del mundo, su registro imperfecto en una base y las decisiones que tomamos a partir de ese registro. Esta afirmación puede parecer filosófica, pero tiene consecuencias metodológicas muy concretas: elegir una variable objetivo, diseñar una métrica, imputar faltantes, ajustar un modelo, interpretar un score y decidir si desplegar o no una solución son partes de un mismo proceso intelectual.
+
+Cuando una persona estudia ciencia de datos de manera superficial, suele creer que el problema principal es “qué algoritmo usar”. En cambio, cuando alcanza un nivel más alto, entiende que la mayor parte de los errores graves aparece antes del algoritmo: formulaciones ambiguas del problema, features mal definidas, leakage, evaluación mal planteada, métricas incoherentes con el costo del error o interpretaciones causales de resultados meramente predictivos. Este texto adopta esa segunda perspectiva: cada técnica se presenta como respuesta a una necesidad, no como una receta aislada.
+
+Para facilitar un aprendizaje profundo, avanzaremos desde la base conceptual hasta temas de modelado más complejos, pasando por las zonas que más cuestan: formalización matemática, interpretación de métricas, sesgo-varianza, diferencia entre ajuste y generalización, significado real de la validación cruzada, diseño de experimentos comparables y lectura crítica de resultados. El objetivo final no es que el lector “reconozca términos”, sino que pueda defender decisiones técnicas con argumentos sólidos, detectar errores comunes y resolver problemas de examen o de práctica profesional con rigor.
+
+## Capítulo 1. Pensar correctamente el problema antes de modelar
+
+Todo proyecto de ciencia de datos comienza con una traducción: pasamos de una pregunta del mundo real a una pregunta modelable. Esa traducción nunca es neutra. Si la formulamos mal, el mejor modelo del mundo optimizará el objetivo equivocado. Por eso este primer capítulo no es introductorio en sentido liviano; es fundacional.
+
+### 1.1 Unidad de análisis, observación y variable
+
+Un dataset tabular puede verse como una matriz \(X\in\mathbb{R}^{n\times p}\), donde \(n\) es el número de observaciones y \(p\) el número de variables predictoras (features). Si además existe una variable objetivo \(y\), estamos en un escenario supervisado. Sin embargo, esta notación compacta oculta una decisión clave: ¿qué representa cada fila?
+
+Si cada fila representa una persona, el modelo aprende patrones entre personas. Si cada fila representa una transacción, aprende patrones entre eventos. Si cada fila representa una ventana temporal, aprende patrones agregados en tiempo. Cambiar la unidad de análisis cambia el significado de toda la tarea. Un error frecuente es mezclar unidades (por ejemplo, usar variables de cliente en un problema por transacción sin controlar dependencia intra-cliente), generando pseudo-replicación y evaluación inflada.
+
+### 1.2 Tipos de tarea: clasificación, regresión, ranking, detección y segmentación
+
+La división clásica entre clasificación, regresión y clustering es correcta, pero conviene ampliarla.
+
+En **clasificación**, el modelo busca una función \(f:X\to\mathcal{C}\), donde \(\mathcal{C}\) es un conjunto finito de clases. Si \(|\mathcal{C}|=2\), hablamos de clasificación binaria; si \(|\mathcal{C}|>2\), multiclase; si una observación puede pertenecer simultáneamente a varias clases, multilabel.
+
+En **regresión**, \(f:X\to\mathbb{R}\) (o \(\mathbb{R}^k\) si hay múltiples objetivos continuos). El error no es “acierto/fallo”, sino distancia entre valor real y predicho.
+
+En **clustering**, no existe \(y\) durante el entrenamiento: buscamos una partición \(\{C_1,\dots,C_K\}\) que maximice similitud intra-cluster y minimice similitud inter-cluster según una métrica elegida.
+
+También aparecen tareas de **ranking** (ordenar items por relevancia), **detección de anomalías** (identificar observaciones raras bajo una noción de normalidad), y **pronóstico temporal** (forecasting), donde la dependencia temporal rompe supuestos de i.i.d. (independencia e idéntica distribución).
+
+Saber nombrar estas tareas no alcanza. Hay que entender qué cambia en cada una: tipo de pérdida, métrica adecuada, validación pertinente, riesgos de leakage y forma de interpretar resultados.
+
+### 1.3 Supervisado vs no supervisado: diferencia epistemológica
+
+En aprendizaje supervisado disponemos de pares \((x_i,y_i)\). El objetivo es estimar una función que minimice una pérdida esperada:
+
+\[
+\mathcal{R}(f)=\mathbb{E}_{(X,Y)\sim P}[L(Y,f(X))].
+\]
+
+Como \(P\) es desconocida, minimizamos el riesgo empírico sobre la muestra:
+
+\[
+\hat{\mathcal{R}}(f)=\frac{1}{n}\sum_{i=1}^n L(y_i,f(x_i)).
+\]
+
+En no supervisado no existe \(Y\) explícita: optimizamos criterios estructurales (varianza intra-cluster, reconstrucción, densidad, etc.). Por eso la evaluación es menos directa y más dependiente del objetivo analítico. Esta diferencia es central en examen: en supervisado preguntamos “¿predice bien?”. En no supervisado preguntamos “¿la estructura hallada es estable, interpretable y útil para una decisión?”.
+
+### 1.4 El costo del error y la función de decisión
+
+Un modelo produce salidas; un sistema produce decisiones. Confundir ambas cosas es peligroso. En clasificación binaria, muchos modelos generan \(\hat p(x)=P(Y=1\mid X=x)\). Convertir esa probabilidad en decisión requiere un umbral \(t\): decidir positivo si \(\hat p\ge t\). Ese \(t\) no debe fijarse por costumbre en 0.5. Debe responder al costo relativo de errores:
+
+- falso positivo: costo \(C_{FP}\)
+- falso negativo: costo \(C_{FN}\)
+
+Si \(C_{FN}\gg C_{FP}\), conviene umbral bajo (más recall). Si \(C_{FP}\gg C_{FN}\), conviene umbral alto (más precision). La ciencia de datos aplicada exige esta traducción explícita entre métrica y negocio.
+
+### 1.5 Errores conceptuales iniciales más frecuentes
+
+El primer error es plantear una tarea predictiva con variables que no estarán disponibles al momento de inferencia (leakage estructural). El segundo es definir una variable objetivo con ruido de etiquetado no reconocido. El tercero es ignorar el horizonte temporal: entrenar con información futura para predecir el pasado. El cuarto es optimizar una métrica irrelevante para la decisión real.
+
+Un lector que domina este capítulo puede responder con precisión preguntas del tipo: “¿Por qué este problema es clasificación y no regresión?”, “¿Qué cambia si la clase positiva es rara?”, “¿Qué variable objetivo sería metodológicamente válida?”, “¿Qué costo de error es prioritario?”.
+
+## Capítulo 2. EDA (Análisis Exploratorio): leer el dataset como evidencia
+
+Antes de modelar hay que entender qué dicen y qué ocultan los datos. El EDA no es adorno visual: es una investigación preliminar que reduce incertidumbre metodológica.
+
+### 2.1 Estructura inicial y calidad de datos
+
+Las primeras preguntas son concretas: tamaño de muestra, tipos de variables, porcentaje de faltantes, duplicados, columnas constantes, cardinalidad categórica, presencia de valores imposibles y coherencia de unidades.
+
+Un chequeo de rango parece trivial, pero evita errores devastadores: edades negativas, fechas invertidas, montos en monedas mezcladas, tasas fuera de \([0,1]\), códigos de categoría inconsistentes por mayúsculas o acentos. Cada una de estas fallas puede introducir patrones espurios que un algoritmo aprovechará sin “saber” que son inválidos.
+
+### 2.2 Estadística descriptiva con propósito
+
+La media, mediana y desvío estándar deben interpretarse en contexto. Si una variable es asimétrica, la media puede ser poco representativa. Si tiene outliers extremos, el desvío puede inflarse. Por eso conviene combinar medidas robustas (mediana, IQR) con visualizaciones (histograma, boxplot, densidades).
+
+En variables categóricas, la distribución de frecuencias revela desbalance y categorías raras. Una categoría con frecuencia ínfima puede no ser ruido: puede corresponder a un segmento de alto valor (por ejemplo, fraude real). El EDA riguroso evita tanto la eliminación automática como la conservación acrítica.
+
+### 2.3 Relación entre variables y target
+
+En clasificación, conviene analizar separabilidad aproximada: cómo varían las distribuciones de features entre clases. En regresión, interesa relación funcional (lineal, no lineal, saturación, umbrales). La correlación de Pearson mide asociación lineal, no dependencia general. Dos variables pueden tener correlación cercana a cero y relación no lineal fuerte. Este matiz evita errores de descarte prematuro.
+
+### 2.4 Faltantes: tipologías y consecuencias
+
+La teoría distingue tres mecanismos:
+
+- MCAR (Missing Completely At Random): la ausencia es independiente de observados y no observados.
+- MAR (Missing At Random): depende de variables observadas.
+- MNAR (Missing Not At Random): depende del propio valor no observado.
+
+La diferencia importa porque condiciona sesgo de imputación. Imputar por media bajo MNAR puede distorsionar relaciones de forma severa. En práctica, rara vez sabemos el mecanismo exacto, pero sí podemos investigar patrones de ausencia y usar indicadores de faltante para capturar señal.
+
+### 2.5 Outliers: error, rareza o subpoblación
+
+Un outlier puede ser:
+
+1. error de carga;
+2. evento raro legítimo;
+3. evidencia de mezcla de poblaciones.
+
+El tratamiento cambia en cada caso. En datasets financieros, un valor extremo puede representar fraude real; eliminarlo puede degradar el modelo justo donde más importa. En sensores industriales, un pico imposible puede ser fallo instrumental y conviene corregir o excluir.
+
+### 2.6 Leakage detectado en EDA
+
+Si una feature es una transformación del target o se registra después del evento a predecir, cualquier desempeño alto será ilusorio. Ejemplo clásico: predecir mora con una variable que se actualiza tras entrar en mora. En examen, identificar leakage suele valer más que elegir algoritmo.
+
+### 2.7 Salida pedagógica del EDA
+
+Al cerrar EDA debe existir un diagnóstico: qué problemas de calidad hay, qué transformaciones se justifican, qué variables son prometedoras, dónde hay riesgo de sesgo y qué hipótesis de modelado son plausibles. Sin ese diagnóstico, el pipeline posterior carece de fundamento.
+
+## Capítulo 3. Preprocesamiento y representación: preparar datos para aprender
+
+Preprocesar no es “limpiar por limpiar”. Es diseñar una representación \(\phi(X)\) que haga aprendible el patrón relevante y reduzca ruido irrelevante.
+
+### 3.1 Pipeline y separación train/test
+
+Todo transformador que aprende parámetros (imputador, escalador, PCA, selector) debe ajustarse con train y aplicarse a valid/test. Formalmente, si un escalador estima \(\mu_j,\sigma_j\), esos parámetros deben calcularse con train:
+
+\[
+\tilde x_{ij}=\frac{x_{ij}-\mu_j^{train}}{\sigma_j^{train}}.
+\]
+
+Calcularlos con todo el dataset introduce información de test en entrenamiento y sesga evaluación.
+
+### 3.2 Imputación: decisión estadística, no relleno mecánico
+
+Imputar media, mediana, moda, KNN o modelos múltiples implica supuestos distintos. La mediana suele ser robusta a colas; KNN preserva estructura local pero escala mal y puede amplificar ruido. Imputación múltiple refleja incertidumbre mejor que imputación única, aunque con mayor costo operativo.
+
+Una práctica recomendable es comparar al menos dos estrategias dentro de validación cruzada y medir impacto real en métrica objetivo.
+
+### 3.3 Encoding de categóricas
+
+En nominales, one-hot evita orden artificial. En ordinales, puede usarse codificación ordenada si el orden es semántico real. En alta cardinalidad, target encoding puede ser útil, pero debe hacerse con estrategias anti-leakage (por ejemplo, encoding por fold). Si se calcula promedio de target por categoría usando todo train sin cuidado, el modelo puede sobreajustar fuertemente.
+
+### 3.4 Escalado y su dependencia del modelo
+
+KNN, SVM con kernel RBF, regresión regularizada y redes neuronales suelen requerir escalado por sensibilidad a magnitud. Árboles y ensambles de árboles son casi invariantes a transformaciones monótonas de escala. Esta distinción es frecuente en examen: no responder con “siempre escalar”.
+
+### 3.5 Transformaciones de distribución
+
+Aplicar \(\log(x+c)\), Box-Cox o Yeo-Johnson puede estabilizar varianza y reducir asimetría. El término \(c\) evita logaritmo de cero. La interpretación cambia: en una regresión lineal sobre \(\log y\), efectos marginales aproximan cambios porcentuales.
+
+### 3.6 Feature engineering como ventaja competitiva
+
+Crear variables derivadas suele aportar más que cambiar de algoritmo. Ejemplos:
+
+- razón ingreso/cuota en riesgo crediticio;
+- antigüedad de cliente en churn;
+- estacionalidad (mes, semana, feriado) en series;
+- n-gramas y longitud en NLP.
+
+La regla es que cada feature nueva tenga justificación conceptual, no proliferación indiscriminada.
+
+### 3.7 Selección de variables y multicolinealidad
+
+En modelos lineales, alta colinealidad infla varianza de coeficientes. El VIF (Variance Inflation Factor) ayuda a diagnosticarla. Regularización L2 mitiga inestabilidad; L1 puede llevar algunos coeficientes a cero (selección implícita). En árboles, la colinealidad afecta menos el ajuste pero puede distorsionar importancias de variables.
+
+## Capítulo 4. Evaluación rigurosa: generalización, validación y métricas
+
+Evaluar bien significa estimar desempeño futuro, no celebrar desempeño pasado.
+
+### 4.1 Error de entrenamiento vs error de generalización
+
+Si \(\hat f\) minimiza riesgo empírico, no necesariamente minimiza riesgo poblacional. La brecha \(\mathcal{R}(\hat f)-\hat{\mathcal{R}}(\hat f)\) refleja generalización. Modelos muy flexibles pueden reducir \(\hat{\mathcal{R}}\) casi a cero y aun así fallar fuera de muestra.
+
+### 4.2 Hold-out, cross-validation y nested CV
+
+- **Hold-out**: simple, rápido, más varianza en estimación.
+- **K-fold CV**: mejor estabilidad, mayor costo.
+- **Nested CV**: necesaria cuando se ajustan hiperparámetros y se quiere estimación menos sesgada del desempeño final.
+
+Confundir validación para tuning con evaluación final produce optimismo indebido.
+
+### 4.3 Matriz de confusión y métricas de clasificación
+
+Sea TP, TN, FP, FN:
+
+\[
+\text{Accuracy}=\frac{TP+TN}{TP+TN+FP+FN}
+\]
+\[
+\text{Precision}=\frac{TP}{TP+FP},\quad
+\text{Recall}=\frac{TP}{TP+FN}
+\]
+\[
+F1=2\cdot\frac{\text{Precision}\cdot\text{Recall}}{\text{Precision}+\text{Recall}}
+\]
+
+Cada fórmula expresa un compromiso distinto. La clave no es memorizarlas, sino leer qué error ponderan.
+
+### 4.4 ROC, AUC y PR-AUC
+
+ROC evalúa trade-off TPR/FPR en todos los umbrales. AUC-ROC es útil, pero en clases extremadamente desbalanceadas la curva Precision-Recall suele ser más informativa porque se centra en rendimiento sobre positivos.
+
+### 4.5 Métricas de regresión
+
+\[
+MAE=\frac{1}{n}\sum|y_i-\hat y_i|,
+\quad
+MSE=\frac{1}{n}\sum(y_i-\hat y_i)^2,
+\quad
+RMSE=\sqrt{MSE}
+\]
+
+MSE/RMSE penalizan más errores grandes. MAE es más robusta y directamente interpretable en unidades del target. \(R^2\) mide proporción de varianza explicada respecto a predictor constante, pero un \(R^2\) alto no garantiza utilidad operativa si error absoluto sigue siendo costoso.
+
+### 4.6 Calibración de probabilidades
+
+Un clasificador puede discriminar bien pero estar mal calibrado. Si predice 0.8, idealmente cerca del 80% de casos con ese score debería ser positivo. Métodos como Platt scaling o isotonic regression corrigen calibración. En decisiones de riesgo, calibrar puede ser tan importante como clasificar.
+
+### 4.7 Significancia práctica vs estadística
+
+Una mejora de 0.003 en AUC puede ser estadísticamente detectable y operacionalmente irrelevante. El criterio profesional exige traducir métricas a impacto: costo evitado, tiempo ahorrado, casos críticos recuperados.
+
+## Capítulo 5. Modelos supervisados fundamentales
+
+No existe modelo universalmente mejor ("no free lunch"). Cada familia incorpora sesgos inductivos distintos.
+
+### 5.1 Regresión lineal
+
+Modelo:
+\[
+y=\beta_0+\sum_{j=1}^p\beta_jx_j+\varepsilon
+\]
+
+Interpretación: \(\beta_j\) es cambio esperado en \(y\) ante aumento unitario de \(x_j\), manteniendo lo demás constante. Supuestos clásicos: linealidad, independencia, homocedasticidad, normalidad de errores (para inferencia exacta), no colinealidad extrema.
+
+Aunque simple, la regresión lineal es poderosa por interpretabilidad. En examen suelen pedir: significado de coeficientes, impacto de colinealidad, lectura de residuos.
+
+### 5.2 Regresión logística
+
+Para clasificación binaria:
+\[
+P(Y=1|x)=\sigma(z)=\frac{1}{1+e^{-z}},\quad z=\beta_0+\beta^Tx
+\]
+
+El logit linealiza odds:
+\[
+\log\frac{p}{1-p}=\beta_0+\beta^Tx
+\]
+
+\(e^{\beta_j}\) se interpreta como multiplicador de odds por unidad de \(x_j\). Error común: interpretar coeficiente como cambio lineal en probabilidad. No lo es; depende del punto de operación por no linealidad de \(\sigma\).
+
+### 5.3 K-Nearest Neighbors (KNN)
+
+Predice según vecinos más cercanos bajo métrica (usualmente euclídea). Ventajas: simplicidad, no paramétrico. Limitaciones: sensible a escala, costo alto en inferencia, degradación en alta dimensión (curse of dimensionality). Elegir \(k\) controla sesgo-varianza: \(k\) pequeño baja sesgo, sube varianza; \(k\) grande al revés.
+
+### 5.4 Naive Bayes
+
+Basado en Bayes con independencia condicional entre features:
+\[
+P(y|x)\propto P(y)\prod_j P(x_j|y)
+\]
+
+Aunque el supuesto es fuerte y rara vez exacto, puede funcionar muy bien en texto y problemas de alta dimensionalidad dispersa.
+
+### 5.5 SVM
+
+Busca hiperplano con margen máximo. En caso no separable usa margen blando con parámetro \(C\). Con kernel trick puede representar fronteras no lineales sin mapear explícitamente a dimensión alta.
+
+- \(C\) alto: penaliza más errores, frontera más ajustada.
+- \(\gamma\) alto (RBF): fronteras más locales/onduladas, mayor riesgo de overfitting.
+
+## Capítulo 6. Árboles de decisión
+
+Los árboles aprenden reglas tipo “si-entonces” mediante particiones recursivas del espacio de features.
+
+### 6.1 Criterios de partición
+
+En clasificación se usan impurezas como Gini o entropía.
+
+\[
+Gini=1-\sum_k p_k^2,
+\quad
+Entropy=-\sum_k p_k\log p_k
+\]
+
+La ganancia de información mide reducción de impureza tras split. En regresión se usa reducción de varianza o MSE intra-nodo.
+
+### 6.2 Sobreajuste y poda
+
+Árboles profundos memorizan entrenamiento. Controlar profundidad máxima, mínimo de muestras por hoja y poda de complejidad-coste reduce varianza. Interpretabilidad alta es ventaja fuerte, pero árboles únicos suelen ser inestables: pequeñas variaciones de datos pueden cambiar estructura.
+
+### 6.3 Importancia de variables y cautelas
+
+Importancias basadas en reducción de impureza pueden sesgarse hacia variables con muchas categorías o rangos amplios. Conviene complementar con permutation importance y análisis de estabilidad.
+
+## Capítulo 7. Ensambles: bagging, boosting y stacking
+
+Combinar modelos débiles o inestables puede producir estimadores más robustos.
+
+### 7.1 Bagging y Random Forest
+
+Bagging entrena múltiples modelos sobre muestras bootstrap y promedia/vota. Reduce varianza.
+
+Random Forest agrega aleatoriedad en selección de features por split, disminuyendo correlación entre árboles. Resultado: menor varianza sin aumento fuerte de sesgo.
+
+Hiperparámetros relevantes: número de árboles, profundidad, max_features, min_samples_leaf. Más árboles suele estabilizar rendimiento hasta saturación.
+
+### 7.2 Boosting (AdaBoost, Gradient Boosting, XGBoost)
+
+Boosting construye modelos secuenciales que corrigen errores previos. En Gradient Boosting se ajusta cada nuevo árbol a gradiente negativo de la pérdida.
+
+XGBoost añade regularización explícita, shrinkage (learning rate), subsampling y manejo eficiente de faltantes. Es potente, pero sensible a tuning: learning rate muy alto o árboles muy profundos pueden sobreajustar.
+
+### 7.3 Bias-variance en ensambles
+
+Bagging: reduce varianza.
+Boosting: reduce sesgo (y puede también varianza según configuración), pero más propenso a sobreajuste si no se regula.
+
+### 7.4 Stacking
+
+Combina predicciones de modelos base mediante un meta-modelo. Debe entrenarse con predicciones out-of-fold para evitar leakage.
+
+## Capítulo 8. Clustering: estructura sin etiquetas
+
+Clustering no “descubre la verdad” automáticamente. Propone una organización posible del espacio según una métrica y un criterio.
+
+### 8.1 K-means
+
+Objetivo:
+\[
+\min_{C_1,\dots,C_K}\sum_{k=1}^K\sum_{x_i\in C_k}||x_i-\mu_k||^2
+\]
+
+Supone clusters aproximadamente esféricos y similares en tamaño bajo distancia euclídea. Sensible a escala y a inicialización. Conviene ejecutar múltiples inicializaciones (k-means++ ayuda).
+
+Elegir \(K\): método del codo, silhouette, criterio de negocio e interpretabilidad.
+
+### 8.2 Clustering jerárquico
+
+No requiere fijar \(K\) al inicio. Construye dendrograma mediante criterios de enlace (single, complete, average, Ward). Permite analizar estructura multiescala, pero escala peor en datasets grandes.
+
+### 8.3 DBSCAN
+
+Define clusters como regiones densas (\(\varepsilon\), minPts). Ventaja: detecta formas arbitrarias y etiqueta ruido explícitamente. Limitación: sensible a parámetros y dificultad en densidades variables.
+
+### 8.4 Evaluación interna y externa
+
+Interna: silhouette, Davies-Bouldin.
+Externa (si hay etiquetas de referencia): ARI, NMI.
+
+Pero ninguna métrica reemplaza interpretación de utilidad. Un clustering “matemáticamente prolijo” puede ser operativamente inútil.
+
+## Capítulo 9. Reducción de dimensionalidad
+
+La alta dimensionalidad aumenta ruido, costo computacional y dificulta visualización.
+
+### 9.1 PCA: fundamento algebraico
+
+Dado \(X\) centrado, PCA encuentra direcciones ortogonales \(w_j\) que maximizan varianza proyectada:
+\[
+\max_{||w||=1} Var(Xw)
+\]
+
+=======
+# Ciencia de Datos: tratado de fundamentos, modelado y criterio profesional
+
+## Introducción general: qué significa dominar ciencia de datos
+
+La ciencia de datos no es una colección de algoritmos ni una secuencia mecánica de pasos. Es una disciplina de inferencia, representación y decisión. Su objeto real de estudio no son solamente los datos, sino la relación entre un fenómeno del mundo, su registro imperfecto en una base y las decisiones que tomamos a partir de ese registro. Esta afirmación puede parecer filosófica, pero tiene consecuencias metodológicas muy concretas: elegir una variable objetivo, diseñar una métrica, imputar faltantes, ajustar un modelo, interpretar un score y decidir si desplegar o no una solución son partes de un mismo proceso intelectual.
+
+Cuando una persona estudia ciencia de datos de manera superficial, suele creer que el problema principal es “qué algoritmo usar”. En cambio, cuando alcanza un nivel más alto, entiende que la mayor parte de los errores graves aparece antes del algoritmo: formulaciones ambiguas del problema, features mal definidas, leakage, evaluación mal planteada, métricas incoherentes con el costo del error o interpretaciones causales de resultados meramente predictivos. Este texto adopta esa segunda perspectiva: cada técnica se presenta como respuesta a una necesidad, no como una receta aislada.
+
+Para facilitar un aprendizaje profundo, avanzaremos desde la base conceptual hasta temas de modelado más complejos, pasando por las zonas que más cuestan: formalización matemática, interpretación de métricas, sesgo-varianza, diferencia entre ajuste y generalización, significado real de la validación cruzada, diseño de experimentos comparables y lectura crítica de resultados. El objetivo final no es que el lector “reconozca términos”, sino que pueda defender decisiones técnicas con argumentos sólidos, detectar errores comunes y resolver problemas de examen o de práctica profesional con rigor.
+
+## Capítulo 1. Pensar correctamente el problema antes de modelar
+
+Todo proyecto de ciencia de datos comienza con una traducción: pasamos de una pregunta del mundo real a una pregunta modelable. Esa traducción nunca es neutra. Si la formulamos mal, el mejor modelo del mundo optimizará el objetivo equivocado. Por eso este primer capítulo no es introductorio en sentido liviano; es fundacional.
+
+### 1.1 Unidad de análisis, observación y variable
+
+Un dataset tabular puede verse como una matriz \(X\in\mathbb{R}^{n\times p}\), donde \(n\) es el número de observaciones y \(p\) el número de variables predictoras (features). Si además existe una variable objetivo \(y\), estamos en un escenario supervisado. Sin embargo, esta notación compacta oculta una decisión clave: ¿qué representa cada fila?
+
+Si cada fila representa una persona, el modelo aprende patrones entre personas. Si cada fila representa una transacción, aprende patrones entre eventos. Si cada fila representa una ventana temporal, aprende patrones agregados en tiempo. Cambiar la unidad de análisis cambia el significado de toda la tarea. Un error frecuente es mezclar unidades (por ejemplo, usar variables de cliente en un problema por transacción sin controlar dependencia intra-cliente), generando pseudo-replicación y evaluación inflada.
+
+### 1.2 Tipos de tarea: clasificación, regresión, ranking, detección y segmentación
+
+La división clásica entre clasificación, regresión y clustering es correcta, pero conviene ampliarla.
+
+En **clasificación**, el modelo busca una función \(f:X\to\mathcal{C}\), donde \(\mathcal{C}\) es un conjunto finito de clases. Si \(|\mathcal{C}|=2\), hablamos de clasificación binaria; si \(|\mathcal{C}|>2\), multiclase; si una observación puede pertenecer simultáneamente a varias clases, multilabel.
+
+En **regresión**, \(f:X\to\mathbb{R}\) (o \(\mathbb{R}^k\) si hay múltiples objetivos continuos). El error no es “acierto/fallo”, sino distancia entre valor real y predicho.
+
+En **clustering**, no existe \(y\) durante el entrenamiento: buscamos una partición \(\{C_1,\dots,C_K\}\) que maximice similitud intra-cluster y minimice similitud inter-cluster según una métrica elegida.
+
+También aparecen tareas de **ranking** (ordenar items por relevancia), **detección de anomalías** (identificar observaciones raras bajo una noción de normalidad), y **pronóstico temporal** (forecasting), donde la dependencia temporal rompe supuestos de i.i.d. (independencia e idéntica distribución).
+
+Saber nombrar estas tareas no alcanza. Hay que entender qué cambia en cada una: tipo de pérdida, métrica adecuada, validación pertinente, riesgos de leakage y forma de interpretar resultados.
+
+### 1.3 Supervisado vs no supervisado: diferencia epistemológica
+
+En aprendizaje supervisado disponemos de pares \((x_i,y_i)\). El objetivo es estimar una función que minimice una pérdida esperada:
+
+\[
+\mathcal{R}(f)=\mathbb{E}_{(X,Y)\sim P}[L(Y,f(X))].
+\]
+
+Como \(P\) es desconocida, minimizamos el riesgo empírico sobre la muestra:
+
+\[
+\hat{\mathcal{R}}(f)=\frac{1}{n}\sum_{i=1}^n L(y_i,f(x_i)).
+\]
+
+En no supervisado no existe \(Y\) explícita: optimizamos criterios estructurales (varianza intra-cluster, reconstrucción, densidad, etc.). Por eso la evaluación es menos directa y más dependiente del objetivo analítico. Esta diferencia es central en examen: en supervisado preguntamos “¿predice bien?”. En no supervisado preguntamos “¿la estructura hallada es estable, interpretable y útil para una decisión?”.
+
+### 1.4 El costo del error y la función de decisión
+
+Un modelo produce salidas; un sistema produce decisiones. Confundir ambas cosas es peligroso. En clasificación binaria, muchos modelos generan \(\hat p(x)=P(Y=1\mid X=x)\). Convertir esa probabilidad en decisión requiere un umbral \(t\): decidir positivo si \(\hat p\ge t\). Ese \(t\) no debe fijarse por costumbre en 0.5. Debe responder al costo relativo de errores:
+
+- falso positivo: costo \(C_{FP}\)
+- falso negativo: costo \(C_{FN}\)
+
+Si \(C_{FN}\gg C_{FP}\), conviene umbral bajo (más recall). Si \(C_{FP}\gg C_{FN}\), conviene umbral alto (más precision). La ciencia de datos aplicada exige esta traducción explícita entre métrica y negocio.
+
+### 1.5 Errores conceptuales iniciales más frecuentes
+
+El primer error es plantear una tarea predictiva con variables que no estarán disponibles al momento de inferencia (leakage estructural). El segundo es definir una variable objetivo con ruido de etiquetado no reconocido. El tercero es ignorar el horizonte temporal: entrenar con información futura para predecir el pasado. El cuarto es optimizar una métrica irrelevante para la decisión real.
+
+Un lector que domina este capítulo puede responder con precisión preguntas del tipo: “¿Por qué este problema es clasificación y no regresión?”, “¿Qué cambia si la clase positiva es rara?”, “¿Qué variable objetivo sería metodológicamente válida?”, “¿Qué costo de error es prioritario?”.
+
+## Capítulo 2. EDA (Análisis Exploratorio): leer el dataset como evidencia
+
+Antes de modelar hay que entender qué dicen y qué ocultan los datos. El EDA no es adorno visual: es una investigación preliminar que reduce incertidumbre metodológica.
+
+### 2.1 Estructura inicial y calidad de datos
+
+Las primeras preguntas son concretas: tamaño de muestra, tipos de variables, porcentaje de faltantes, duplicados, columnas constantes, cardinalidad categórica, presencia de valores imposibles y coherencia de unidades.
+
+Un chequeo de rango parece trivial, pero evita errores devastadores: edades negativas, fechas invertidas, montos en monedas mezcladas, tasas fuera de \([0,1]\), códigos de categoría inconsistentes por mayúsculas o acentos. Cada una de estas fallas puede introducir patrones espurios que un algoritmo aprovechará sin “saber” que son inválidos.
+
+### 2.2 Estadística descriptiva con propósito
+
+La media, mediana y desvío estándar deben interpretarse en contexto. Si una variable es asimétrica, la media puede ser poco representativa. Si tiene outliers extremos, el desvío puede inflarse. Por eso conviene combinar medidas robustas (mediana, IQR) con visualizaciones (histograma, boxplot, densidades).
+
+En variables categóricas, la distribución de frecuencias revela desbalance y categorías raras. Una categoría con frecuencia ínfima puede no ser ruido: puede corresponder a un segmento de alto valor (por ejemplo, fraude real). El EDA riguroso evita tanto la eliminación automática como la conservación acrítica.
+
+### 2.3 Relación entre variables y target
+
+En clasificación, conviene analizar separabilidad aproximada: cómo varían las distribuciones de features entre clases. En regresión, interesa relación funcional (lineal, no lineal, saturación, umbrales). La correlación de Pearson mide asociación lineal, no dependencia general. Dos variables pueden tener correlación cercana a cero y relación no lineal fuerte. Este matiz evita errores de descarte prematuro.
+
+### 2.4 Faltantes: tipologías y consecuencias
+
+La teoría distingue tres mecanismos:
+
+- MCAR (Missing Completely At Random): la ausencia es independiente de observados y no observados.
+- MAR (Missing At Random): depende de variables observadas.
+- MNAR (Missing Not At Random): depende del propio valor no observado.
+
+La diferencia importa porque condiciona sesgo de imputación. Imputar por media bajo MNAR puede distorsionar relaciones de forma severa. En práctica, rara vez sabemos el mecanismo exacto, pero sí podemos investigar patrones de ausencia y usar indicadores de faltante para capturar señal.
+
+### 2.5 Outliers: error, rareza o subpoblación
+
+Un outlier puede ser:
+
+1. error de carga;
+2. evento raro legítimo;
+3. evidencia de mezcla de poblaciones.
+
+El tratamiento cambia en cada caso. En datasets financieros, un valor extremo puede representar fraude real; eliminarlo puede degradar el modelo justo donde más importa. En sensores industriales, un pico imposible puede ser fallo instrumental y conviene corregir o excluir.
+
+### 2.6 Leakage detectado en EDA
+
+Si una feature es una transformación del target o se registra después del evento a predecir, cualquier desempeño alto será ilusorio. Ejemplo clásico: predecir mora con una variable que se actualiza tras entrar en mora. En examen, identificar leakage suele valer más que elegir algoritmo.
+
+### 2.7 Salida pedagógica del EDA
+
+Al cerrar EDA debe existir un diagnóstico: qué problemas de calidad hay, qué transformaciones se justifican, qué variables son prometedoras, dónde hay riesgo de sesgo y qué hipótesis de modelado son plausibles. Sin ese diagnóstico, el pipeline posterior carece de fundamento.
+
+## Capítulo 3. Preprocesamiento y representación: preparar datos para aprender
+
+Preprocesar no es “limpiar por limpiar”. Es diseñar una representación \(\phi(X)\) que haga aprendible el patrón relevante y reduzca ruido irrelevante.
+
+### 3.1 Pipeline y separación train/test
+
+Todo transformador que aprende parámetros (imputador, escalador, PCA, selector) debe ajustarse con train y aplicarse a valid/test. Formalmente, si un escalador estima \(\mu_j,\sigma_j\), esos parámetros deben calcularse con train:
+
+\[
+\tilde x_{ij}=\frac{x_{ij}-\mu_j^{train}}{\sigma_j^{train}}.
+\]
+
+Calcularlos con todo el dataset introduce información de test en entrenamiento y sesga evaluación.
+
+### 3.2 Imputación: decisión estadística, no relleno mecánico
+
+Imputar media, mediana, moda, KNN o modelos múltiples implica supuestos distintos. La mediana suele ser robusta a colas; KNN preserva estructura local pero escala mal y puede amplificar ruido. Imputación múltiple refleja incertidumbre mejor que imputación única, aunque con mayor costo operativo.
+
+Una práctica recomendable es comparar al menos dos estrategias dentro de validación cruzada y medir impacto real en métrica objetivo.
+
+### 3.3 Encoding de categóricas
+
+En nominales, one-hot evita orden artificial. En ordinales, puede usarse codificación ordenada si el orden es semántico real. En alta cardinalidad, target encoding puede ser útil, pero debe hacerse con estrategias anti-leakage (por ejemplo, encoding por fold). Si se calcula promedio de target por categoría usando todo train sin cuidado, el modelo puede sobreajustar fuertemente.
+
+### 3.4 Escalado y su dependencia del modelo
+
+KNN, SVM con kernel RBF, regresión regularizada y redes neuronales suelen requerir escalado por sensibilidad a magnitud. Árboles y ensambles de árboles son casi invariantes a transformaciones monótonas de escala. Esta distinción es frecuente en examen: no responder con “siempre escalar”.
+
+### 3.5 Transformaciones de distribución
+
+Aplicar \(\log(x+c)\), Box-Cox o Yeo-Johnson puede estabilizar varianza y reducir asimetría. El término \(c\) evita logaritmo de cero. La interpretación cambia: en una regresión lineal sobre \(\log y\), efectos marginales aproximan cambios porcentuales.
+
+### 3.6 Feature engineering como ventaja competitiva
+
+Crear variables derivadas suele aportar más que cambiar de algoritmo. Ejemplos:
+
+- razón ingreso/cuota en riesgo crediticio;
+- antigüedad de cliente en churn;
+- estacionalidad (mes, semana, feriado) en series;
+- n-gramas y longitud en NLP.
+
+La regla es que cada feature nueva tenga justificación conceptual, no proliferación indiscriminada.
+
+### 3.7 Selección de variables y multicolinealidad
+
+En modelos lineales, alta colinealidad infla varianza de coeficientes. El VIF (Variance Inflation Factor) ayuda a diagnosticarla. Regularización L2 mitiga inestabilidad; L1 puede llevar algunos coeficientes a cero (selección implícita). En árboles, la colinealidad afecta menos el ajuste pero puede distorsionar importancias de variables.
+
+## Capítulo 4. Evaluación rigurosa: generalización, validación y métricas
+
+Evaluar bien significa estimar desempeño futuro, no celebrar desempeño pasado.
+
+### 4.1 Error de entrenamiento vs error de generalización
+
+Si \(\hat f\) minimiza riesgo empírico, no necesariamente minimiza riesgo poblacional. La brecha \(\mathcal{R}(\hat f)-\hat{\mathcal{R}}(\hat f)\) refleja generalización. Modelos muy flexibles pueden reducir \(\hat{\mathcal{R}}\) casi a cero y aun así fallar fuera de muestra.
+
+### 4.2 Hold-out, cross-validation y nested CV
+
+- **Hold-out**: simple, rápido, más varianza en estimación.
+- **K-fold CV**: mejor estabilidad, mayor costo.
+- **Nested CV**: necesaria cuando se ajustan hiperparámetros y se quiere estimación menos sesgada del desempeño final.
+
+Confundir validación para tuning con evaluación final produce optimismo indebido.
+
+### 4.3 Matriz de confusión y métricas de clasificación
+
+Sea TP, TN, FP, FN:
+
+\[
+\text{Accuracy}=\frac{TP+TN}{TP+TN+FP+FN}
+\]
+\[
+\text{Precision}=\frac{TP}{TP+FP},\quad
+\text{Recall}=\frac{TP}{TP+FN}
+\]
+\[
+F1=2\cdot\frac{\text{Precision}\cdot\text{Recall}}{\text{Precision}+\text{Recall}}
+\]
+
+Cada fórmula expresa un compromiso distinto. La clave no es memorizarlas, sino leer qué error ponderan.
+
+### 4.4 ROC, AUC y PR-AUC
+
+ROC evalúa trade-off TPR/FPR en todos los umbrales. AUC-ROC es útil, pero en clases extremadamente desbalanceadas la curva Precision-Recall suele ser más informativa porque se centra en rendimiento sobre positivos.
+
+### 4.5 Métricas de regresión
+
+\[
+MAE=\frac{1}{n}\sum|y_i-\hat y_i|,
+\quad
+MSE=\frac{1}{n}\sum(y_i-\hat y_i)^2,
+\quad
+RMSE=\sqrt{MSE}
+\]
+
+MSE/RMSE penalizan más errores grandes. MAE es más robusta y directamente interpretable en unidades del target. \(R^2\) mide proporción de varianza explicada respecto a predictor constante, pero un \(R^2\) alto no garantiza utilidad operativa si error absoluto sigue siendo costoso.
+
+### 4.6 Calibración de probabilidades
+
+Un clasificador puede discriminar bien pero estar mal calibrado. Si predice 0.8, idealmente cerca del 80% de casos con ese score debería ser positivo. Métodos como Platt scaling o isotonic regression corrigen calibración. En decisiones de riesgo, calibrar puede ser tan importante como clasificar.
+
+### 4.7 Significancia práctica vs estadística
+
+Una mejora de 0.003 en AUC puede ser estadísticamente detectable y operacionalmente irrelevante. El criterio profesional exige traducir métricas a impacto: costo evitado, tiempo ahorrado, casos críticos recuperados.
+
+## Capítulo 5. Modelos supervisados fundamentales
+
+No existe modelo universalmente mejor ("no free lunch"). Cada familia incorpora sesgos inductivos distintos.
+
+### 5.1 Regresión lineal
+
+Modelo:
+\[
+y=\beta_0+\sum_{j=1}^p\beta_jx_j+\varepsilon
+\]
+
+Interpretación: \(\beta_j\) es cambio esperado en \(y\) ante aumento unitario de \(x_j\), manteniendo lo demás constante. Supuestos clásicos: linealidad, independencia, homocedasticidad, normalidad de errores (para inferencia exacta), no colinealidad extrema.
+
+Aunque simple, la regresión lineal es poderosa por interpretabilidad. En examen suelen pedir: significado de coeficientes, impacto de colinealidad, lectura de residuos.
+
+### 5.2 Regresión logística
+
+Para clasificación binaria:
+\[
+P(Y=1|x)=\sigma(z)=\frac{1}{1+e^{-z}},\quad z=\beta_0+\beta^Tx
+\]
+
+El logit linealiza odds:
+\[
+\log\frac{p}{1-p}=\beta_0+\beta^Tx
+\]
+
+\(e^{\beta_j}\) se interpreta como multiplicador de odds por unidad de \(x_j\). Error común: interpretar coeficiente como cambio lineal en probabilidad. No lo es; depende del punto de operación por no linealidad de \(\sigma\).
+
+### 5.3 K-Nearest Neighbors (KNN)
+
+Predice según vecinos más cercanos bajo métrica (usualmente euclídea). Ventajas: simplicidad, no paramétrico. Limitaciones: sensible a escala, costo alto en inferencia, degradación en alta dimensión (curse of dimensionality). Elegir \(k\) controla sesgo-varianza: \(k\) pequeño baja sesgo, sube varianza; \(k\) grande al revés.
+
+### 5.4 Naive Bayes
+
+Basado en Bayes con independencia condicional entre features:
+\[
+P(y|x)\propto P(y)\prod_j P(x_j|y)
+\]
+
+Aunque el supuesto es fuerte y rara vez exacto, puede funcionar muy bien en texto y problemas de alta dimensionalidad dispersa.
+
+### 5.5 SVM
+
+Busca hiperplano con margen máximo. En caso no separable usa margen blando con parámetro \(C\). Con kernel trick puede representar fronteras no lineales sin mapear explícitamente a dimensión alta.
+
+- \(C\) alto: penaliza más errores, frontera más ajustada.
+- \(\gamma\) alto (RBF): fronteras más locales/onduladas, mayor riesgo de overfitting.
+
+## Capítulo 6. Árboles de decisión
+
+Los árboles aprenden reglas tipo “si-entonces” mediante particiones recursivas del espacio de features.
+
+### 6.1 Criterios de partición
+
+En clasificación se usan impurezas como Gini o entropía.
+
+\[
+Gini=1-\sum_k p_k^2,
+\quad
+Entropy=-\sum_k p_k\log p_k
+\]
+
+La ganancia de información mide reducción de impureza tras split. En regresión se usa reducción de varianza o MSE intra-nodo.
+
+### 6.2 Sobreajuste y poda
+
+Árboles profundos memorizan entrenamiento. Controlar profundidad máxima, mínimo de muestras por hoja y poda de complejidad-coste reduce varianza. Interpretabilidad alta es ventaja fuerte, pero árboles únicos suelen ser inestables: pequeñas variaciones de datos pueden cambiar estructura.
+
+### 6.3 Importancia de variables y cautelas
+
+Importancias basadas en reducción de impureza pueden sesgarse hacia variables con muchas categorías o rangos amplios. Conviene complementar con permutation importance y análisis de estabilidad.
+
+## Capítulo 7. Ensambles: bagging, boosting y stacking
+
+Combinar modelos débiles o inestables puede producir estimadores más robustos.
+
+### 7.1 Bagging y Random Forest
+
+Bagging entrena múltiples modelos sobre muestras bootstrap y promedia/vota. Reduce varianza.
+
+Random Forest agrega aleatoriedad en selección de features por split, disminuyendo correlación entre árboles. Resultado: menor varianza sin aumento fuerte de sesgo.
+
+Hiperparámetros relevantes: número de árboles, profundidad, max_features, min_samples_leaf. Más árboles suele estabilizar rendimiento hasta saturación.
+
+### 7.2 Boosting (AdaBoost, Gradient Boosting, XGBoost)
+
+Boosting construye modelos secuenciales que corrigen errores previos. En Gradient Boosting se ajusta cada nuevo árbol a gradiente negativo de la pérdida.
+
+XGBoost añade regularización explícita, shrinkage (learning rate), subsampling y manejo eficiente de faltantes. Es potente, pero sensible a tuning: learning rate muy alto o árboles muy profundos pueden sobreajustar.
+
+### 7.3 Bias-variance en ensambles
+
+Bagging: reduce varianza.
+Boosting: reduce sesgo (y puede también varianza según configuración), pero más propenso a sobreajuste si no se regula.
+
+### 7.4 Stacking
+
+Combina predicciones de modelos base mediante un meta-modelo. Debe entrenarse con predicciones out-of-fold para evitar leakage.
+
+## Capítulo 8. Clustering: estructura sin etiquetas
+
+Clustering no “descubre la verdad” automáticamente. Propone una organización posible del espacio según una métrica y un criterio.
+
+### 8.1 K-means
+
+Objetivo:
+\[
+\min_{C_1,\dots,C_K}\sum_{k=1}^K\sum_{x_i\in C_k}||x_i-\mu_k||^2
+\]
+
+Supone clusters aproximadamente esféricos y similares en tamaño bajo distancia euclídea. Sensible a escala y a inicialización. Conviene ejecutar múltiples inicializaciones (k-means++ ayuda).
+
+Elegir \(K\): método del codo, silhouette, criterio de negocio e interpretabilidad.
+
+### 8.2 Clustering jerárquico
+
+No requiere fijar \(K\) al inicio. Construye dendrograma mediante criterios de enlace (single, complete, average, Ward). Permite analizar estructura multiescala, pero escala peor en datasets grandes.
+
+### 8.3 DBSCAN
+
+Define clusters como regiones densas (\(\varepsilon\), minPts). Ventaja: detecta formas arbitrarias y etiqueta ruido explícitamente. Limitación: sensible a parámetros y dificultad en densidades variables.
+
+### 8.4 Evaluación interna y externa
+
+Interna: silhouette, Davies-Bouldin.
+Externa (si hay etiquetas de referencia): ARI, NMI.
+
+Pero ninguna métrica reemplaza interpretación de utilidad. Un clustering “matemáticamente prolijo” puede ser operativamente inútil.
+
+## Capítulo 9. Reducción de dimensionalidad
+
+La alta dimensionalidad aumenta ruido, costo computacional y dificulta visualización.
+
+### 9.1 PCA: fundamento algebraico
+
+Dado \(X\) centrado, PCA encuentra direcciones ortogonales \(w_j\) que maximizan varianza proyectada:
+\[
+\max_{||w||=1} Var(Xw)
+\]
+
+>>>>>>> theirs
+=======
+# Ciencia de Datos: tratado de fundamentos, modelado y criterio profesional
+
+## Introducción general: qué significa dominar ciencia de datos
+
+La ciencia de datos no es una colección de algoritmos ni una secuencia mecánica de pasos. Es una disciplina de inferencia, representación y decisión. Su objeto real de estudio no son solamente los datos, sino la relación entre un fenómeno del mundo, su registro imperfecto en una base y las decisiones que tomamos a partir de ese registro. Esta afirmación puede parecer filosófica, pero tiene consecuencias metodológicas muy concretas: elegir una variable objetivo, diseñar una métrica, imputar faltantes, ajustar un modelo, interpretar un score y decidir si desplegar o no una solución son partes de un mismo proceso intelectual.
+
+Cuando una persona estudia ciencia de datos de manera superficial, suele creer que el problema principal es “qué algoritmo usar”. En cambio, cuando alcanza un nivel más alto, entiende que la mayor parte de los errores graves aparece antes del algoritmo: formulaciones ambiguas del problema, features mal definidas, leakage, evaluación mal planteada, métricas incoherentes con el costo del error o interpretaciones causales de resultados meramente predictivos. Este texto adopta esa segunda perspectiva: cada técnica se presenta como respuesta a una necesidad, no como una receta aislada.
+
+Para facilitar un aprendizaje profundo, avanzaremos desde la base conceptual hasta temas de modelado más complejos, pasando por las zonas que más cuestan: formalización matemática, interpretación de métricas, sesgo-varianza, diferencia entre ajuste y generalización, significado real de la validación cruzada, diseño de experimentos comparables y lectura crítica de resultados. El objetivo final no es que el lector “reconozca términos”, sino que pueda defender decisiones técnicas con argumentos sólidos, detectar errores comunes y resolver problemas de examen o de práctica profesional con rigor.
+
+## Capítulo 1. Pensar correctamente el problema antes de modelar
+
+Todo proyecto de ciencia de datos comienza con una traducción: pasamos de una pregunta del mundo real a una pregunta modelable. Esa traducción nunca es neutra. Si la formulamos mal, el mejor modelo del mundo optimizará el objetivo equivocado. Por eso este primer capítulo no es introductorio en sentido liviano; es fundacional.
+
+### 1.1 Unidad de análisis, observación y variable
+
+Un dataset tabular puede verse como una matriz \(X\in\mathbb{R}^{n\times p}\), donde \(n\) es el número de observaciones y \(p\) el número de variables predictoras (features). Si además existe una variable objetivo \(y\), estamos en un escenario supervisado. Sin embargo, esta notación compacta oculta una decisión clave: ¿qué representa cada fila?
+
+Si cada fila representa una persona, el modelo aprende patrones entre personas. Si cada fila representa una transacción, aprende patrones entre eventos. Si cada fila representa una ventana temporal, aprende patrones agregados en tiempo. Cambiar la unidad de análisis cambia el significado de toda la tarea. Un error frecuente es mezclar unidades (por ejemplo, usar variables de cliente en un problema por transacción sin controlar dependencia intra-cliente), generando pseudo-replicación y evaluación inflada.
+
+### 1.2 Tipos de tarea: clasificación, regresión, ranking, detección y segmentación
+
+La división clásica entre clasificación, regresión y clustering es correcta, pero conviene ampliarla.
+
+En **clasificación**, el modelo busca una función \(f:X\to\mathcal{C}\), donde \(\mathcal{C}\) es un conjunto finito de clases. Si \(|\mathcal{C}|=2\), hablamos de clasificación binaria; si \(|\mathcal{C}|>2\), multiclase; si una observación puede pertenecer simultáneamente a varias clases, multilabel.
+
+En **regresión**, \(f:X\to\mathbb{R}\) (o \(\mathbb{R}^k\) si hay múltiples objetivos continuos). El error no es “acierto/fallo”, sino distancia entre valor real y predicho.
+
+En **clustering**, no existe \(y\) durante el entrenamiento: buscamos una partición \(\{C_1,\dots,C_K\}\) que maximice similitud intra-cluster y minimice similitud inter-cluster según una métrica elegida.
+
+También aparecen tareas de **ranking** (ordenar items por relevancia), **detección de anomalías** (identificar observaciones raras bajo una noción de normalidad), y **pronóstico temporal** (forecasting), donde la dependencia temporal rompe supuestos de i.i.d. (independencia e idéntica distribución).
+
+Saber nombrar estas tareas no alcanza. Hay que entender qué cambia en cada una: tipo de pérdida, métrica adecuada, validación pertinente, riesgos de leakage y forma de interpretar resultados.
+
+### 1.3 Supervisado vs no supervisado: diferencia epistemológica
+
+En aprendizaje supervisado disponemos de pares \((x_i,y_i)\). El objetivo es estimar una función que minimice una pérdida esperada:
+
+\[
+\mathcal{R}(f)=\mathbb{E}_{(X,Y)\sim P}[L(Y,f(X))].
+\]
+
+Como \(P\) es desconocida, minimizamos el riesgo empírico sobre la muestra:
+
+\[
+\hat{\mathcal{R}}(f)=\frac{1}{n}\sum_{i=1}^n L(y_i,f(x_i)).
+\]
+
+En no supervisado no existe \(Y\) explícita: optimizamos criterios estructurales (varianza intra-cluster, reconstrucción, densidad, etc.). Por eso la evaluación es menos directa y más dependiente del objetivo analítico. Esta diferencia es central en examen: en supervisado preguntamos “¿predice bien?”. En no supervisado preguntamos “¿la estructura hallada es estable, interpretable y útil para una decisión?”.
+
+### 1.4 El costo del error y la función de decisión
+
+Un modelo produce salidas; un sistema produce decisiones. Confundir ambas cosas es peligroso. En clasificación binaria, muchos modelos generan \(\hat p(x)=P(Y=1\mid X=x)\). Convertir esa probabilidad en decisión requiere un umbral \(t\): decidir positivo si \(\hat p\ge t\). Ese \(t\) no debe fijarse por costumbre en 0.5. Debe responder al costo relativo de errores:
+
+- falso positivo: costo \(C_{FP}\)
+- falso negativo: costo \(C_{FN}\)
+
+Si \(C_{FN}\gg C_{FP}\), conviene umbral bajo (más recall). Si \(C_{FP}\gg C_{FN}\), conviene umbral alto (más precision). La ciencia de datos aplicada exige esta traducción explícita entre métrica y negocio.
+
+### 1.5 Errores conceptuales iniciales más frecuentes
+
+El primer error es plantear una tarea predictiva con variables que no estarán disponibles al momento de inferencia (leakage estructural). El segundo es definir una variable objetivo con ruido de etiquetado no reconocido. El tercero es ignorar el horizonte temporal: entrenar con información futura para predecir el pasado. El cuarto es optimizar una métrica irrelevante para la decisión real.
+
+Un lector que domina este capítulo puede responder con precisión preguntas del tipo: “¿Por qué este problema es clasificación y no regresión?”, “¿Qué cambia si la clase positiva es rara?”, “¿Qué variable objetivo sería metodológicamente válida?”, “¿Qué costo de error es prioritario?”.
+
+## Capítulo 2. EDA (Análisis Exploratorio): leer el dataset como evidencia
+
+Antes de modelar hay que entender qué dicen y qué ocultan los datos. El EDA no es adorno visual: es una investigación preliminar que reduce incertidumbre metodológica.
+
+### 2.1 Estructura inicial y calidad de datos
+
+Las primeras preguntas son concretas: tamaño de muestra, tipos de variables, porcentaje de faltantes, duplicados, columnas constantes, cardinalidad categórica, presencia de valores imposibles y coherencia de unidades.
+
+Un chequeo de rango parece trivial, pero evita errores devastadores: edades negativas, fechas invertidas, montos en monedas mezcladas, tasas fuera de \([0,1]\), códigos de categoría inconsistentes por mayúsculas o acentos. Cada una de estas fallas puede introducir patrones espurios que un algoritmo aprovechará sin “saber” que son inválidos.
+
+### 2.2 Estadística descriptiva con propósito
+
+La media, mediana y desvío estándar deben interpretarse en contexto. Si una variable es asimétrica, la media puede ser poco representativa. Si tiene outliers extremos, el desvío puede inflarse. Por eso conviene combinar medidas robustas (mediana, IQR) con visualizaciones (histograma, boxplot, densidades).
+
+En variables categóricas, la distribución de frecuencias revela desbalance y categorías raras. Una categoría con frecuencia ínfima puede no ser ruido: puede corresponder a un segmento de alto valor (por ejemplo, fraude real). El EDA riguroso evita tanto la eliminación automática como la conservación acrítica.
+
+### 2.3 Relación entre variables y target
+
+En clasificación, conviene analizar separabilidad aproximada: cómo varían las distribuciones de features entre clases. En regresión, interesa relación funcional (lineal, no lineal, saturación, umbrales). La correlación de Pearson mide asociación lineal, no dependencia general. Dos variables pueden tener correlación cercana a cero y relación no lineal fuerte. Este matiz evita errores de descarte prematuro.
+
+### 2.4 Faltantes: tipologías y consecuencias
+
+La teoría distingue tres mecanismos:
+
+- MCAR (Missing Completely At Random): la ausencia es independiente de observados y no observados.
+- MAR (Missing At Random): depende de variables observadas.
+- MNAR (Missing Not At Random): depende del propio valor no observado.
+
+La diferencia importa porque condiciona sesgo de imputación. Imputar por media bajo MNAR puede distorsionar relaciones de forma severa. En práctica, rara vez sabemos el mecanismo exacto, pero sí podemos investigar patrones de ausencia y usar indicadores de faltante para capturar señal.
+
+### 2.5 Outliers: error, rareza o subpoblación
+
+Un outlier puede ser:
+
+1. error de carga;
+2. evento raro legítimo;
+3. evidencia de mezcla de poblaciones.
+
+El tratamiento cambia en cada caso. En datasets financieros, un valor extremo puede representar fraude real; eliminarlo puede degradar el modelo justo donde más importa. En sensores industriales, un pico imposible puede ser fallo instrumental y conviene corregir o excluir.
+
+### 2.6 Leakage detectado en EDA
+
+Si una feature es una transformación del target o se registra después del evento a predecir, cualquier desempeño alto será ilusorio. Ejemplo clásico: predecir mora con una variable que se actualiza tras entrar en mora. En examen, identificar leakage suele valer más que elegir algoritmo.
+
+### 2.7 Salida pedagógica del EDA
+
+Al cerrar EDA debe existir un diagnóstico: qué problemas de calidad hay, qué transformaciones se justifican, qué variables son prometedoras, dónde hay riesgo de sesgo y qué hipótesis de modelado son plausibles. Sin ese diagnóstico, el pipeline posterior carece de fundamento.
+
+## Capítulo 3. Preprocesamiento y representación: preparar datos para aprender
+
+Preprocesar no es “limpiar por limpiar”. Es diseñar una representación \(\phi(X)\) que haga aprendible el patrón relevante y reduzca ruido irrelevante.
+
+### 3.1 Pipeline y separación train/test
+
+Todo transformador que aprende parámetros (imputador, escalador, PCA, selector) debe ajustarse con train y aplicarse a valid/test. Formalmente, si un escalador estima \(\mu_j,\sigma_j\), esos parámetros deben calcularse con train:
+
+\[
+\tilde x_{ij}=\frac{x_{ij}-\mu_j^{train}}{\sigma_j^{train}}.
+\]
+
+Calcularlos con todo el dataset introduce información de test en entrenamiento y sesga evaluación.
+
+### 3.2 Imputación: decisión estadística, no relleno mecánico
+
+Imputar media, mediana, moda, KNN o modelos múltiples implica supuestos distintos. La mediana suele ser robusta a colas; KNN preserva estructura local pero escala mal y puede amplificar ruido. Imputación múltiple refleja incertidumbre mejor que imputación única, aunque con mayor costo operativo.
+
+Una práctica recomendable es comparar al menos dos estrategias dentro de validación cruzada y medir impacto real en métrica objetivo.
+
+### 3.3 Encoding de categóricas
+
+En nominales, one-hot evita orden artificial. En ordinales, puede usarse codificación ordenada si el orden es semántico real. En alta cardinalidad, target encoding puede ser útil, pero debe hacerse con estrategias anti-leakage (por ejemplo, encoding por fold). Si se calcula promedio de target por categoría usando todo train sin cuidado, el modelo puede sobreajustar fuertemente.
+
+### 3.4 Escalado y su dependencia del modelo
+
+KNN, SVM con kernel RBF, regresión regularizada y redes neuronales suelen requerir escalado por sensibilidad a magnitud. Árboles y ensambles de árboles son casi invariantes a transformaciones monótonas de escala. Esta distinción es frecuente en examen: no responder con “siempre escalar”.
+
+### 3.5 Transformaciones de distribución
+
+Aplicar \(\log(x+c)\), Box-Cox o Yeo-Johnson puede estabilizar varianza y reducir asimetría. El término \(c\) evita logaritmo de cero. La interpretación cambia: en una regresión lineal sobre \(\log y\), efectos marginales aproximan cambios porcentuales.
+
+### 3.6 Feature engineering como ventaja competitiva
+
+Crear variables derivadas suele aportar más que cambiar de algoritmo. Ejemplos:
+
+- razón ingreso/cuota en riesgo crediticio;
+- antigüedad de cliente en churn;
+- estacionalidad (mes, semana, feriado) en series;
+- n-gramas y longitud en NLP.
+
+La regla es que cada feature nueva tenga justificación conceptual, no proliferación indiscriminada.
+
+### 3.7 Selección de variables y multicolinealidad
+
+En modelos lineales, alta colinealidad infla varianza de coeficientes. El VIF (Variance Inflation Factor) ayuda a diagnosticarla. Regularización L2 mitiga inestabilidad; L1 puede llevar algunos coeficientes a cero (selección implícita). En árboles, la colinealidad afecta menos el ajuste pero puede distorsionar importancias de variables.
+
+## Capítulo 4. Evaluación rigurosa: generalización, validación y métricas
+
+Evaluar bien significa estimar desempeño futuro, no celebrar desempeño pasado.
+
+### 4.1 Error de entrenamiento vs error de generalización
+
+Si \(\hat f\) minimiza riesgo empírico, no necesariamente minimiza riesgo poblacional. La brecha \(\mathcal{R}(\hat f)-\hat{\mathcal{R}}(\hat f)\) refleja generalización. Modelos muy flexibles pueden reducir \(\hat{\mathcal{R}}\) casi a cero y aun así fallar fuera de muestra.
+
+### 4.2 Hold-out, cross-validation y nested CV
+
+- **Hold-out**: simple, rápido, más varianza en estimación.
+- **K-fold CV**: mejor estabilidad, mayor costo.
+- **Nested CV**: necesaria cuando se ajustan hiperparámetros y se quiere estimación menos sesgada del desempeño final.
+
+Confundir validación para tuning con evaluación final produce optimismo indebido.
+
+### 4.3 Matriz de confusión y métricas de clasificación
+
+Sea TP, TN, FP, FN:
+
+\[
+\text{Accuracy}=\frac{TP+TN}{TP+TN+FP+FN}
+\]
+\[
+\text{Precision}=\frac{TP}{TP+FP},\quad
+\text{Recall}=\frac{TP}{TP+FN}
+\]
+\[
+F1=2\cdot\frac{\text{Precision}\cdot\text{Recall}}{\text{Precision}+\text{Recall}}
+\]
+
+Cada fórmula expresa un compromiso distinto. La clave no es memorizarlas, sino leer qué error ponderan.
+
+### 4.4 ROC, AUC y PR-AUC
+
+ROC evalúa trade-off TPR/FPR en todos los umbrales. AUC-ROC es útil, pero en clases extremadamente desbalanceadas la curva Precision-Recall suele ser más informativa porque se centra en rendimiento sobre positivos.
+
+### 4.5 Métricas de regresión
+
+\[
+MAE=\frac{1}{n}\sum|y_i-\hat y_i|,
+\quad
+MSE=\frac{1}{n}\sum(y_i-\hat y_i)^2,
+\quad
+RMSE=\sqrt{MSE}
+\]
+
+MSE/RMSE penalizan más errores grandes. MAE es más robusta y directamente interpretable en unidades del target. \(R^2\) mide proporción de varianza explicada respecto a predictor constante, pero un \(R^2\) alto no garantiza utilidad operativa si error absoluto sigue siendo costoso.
+
+### 4.6 Calibración de probabilidades
+
+Un clasificador puede discriminar bien pero estar mal calibrado. Si predice 0.8, idealmente cerca del 80% de casos con ese score debería ser positivo. Métodos como Platt scaling o isotonic regression corrigen calibración. En decisiones de riesgo, calibrar puede ser tan importante como clasificar.
+
+### 4.7 Significancia práctica vs estadística
+
+Una mejora de 0.003 en AUC puede ser estadísticamente detectable y operacionalmente irrelevante. El criterio profesional exige traducir métricas a impacto: costo evitado, tiempo ahorrado, casos críticos recuperados.
+
+## Capítulo 5. Modelos supervisados fundamentales
+
+No existe modelo universalmente mejor ("no free lunch"). Cada familia incorpora sesgos inductivos distintos.
+
+### 5.1 Regresión lineal
+
+Modelo:
+\[
+y=\beta_0+\sum_{j=1}^p\beta_jx_j+\varepsilon
+\]
+
+Interpretación: \(\beta_j\) es cambio esperado en \(y\) ante aumento unitario de \(x_j\), manteniendo lo demás constante. Supuestos clásicos: linealidad, independencia, homocedasticidad, normalidad de errores (para inferencia exacta), no colinealidad extrema.
+
+Aunque simple, la regresión lineal es poderosa por interpretabilidad. En examen suelen pedir: significado de coeficientes, impacto de colinealidad, lectura de residuos.
+
+### 5.2 Regresión logística
+
+Para clasificación binaria:
+\[
+P(Y=1|x)=\sigma(z)=\frac{1}{1+e^{-z}},\quad z=\beta_0+\beta^Tx
+\]
+
+El logit linealiza odds:
+\[
+\log\frac{p}{1-p}=\beta_0+\beta^Tx
+\]
+
+\(e^{\beta_j}\) se interpreta como multiplicador de odds por unidad de \(x_j\). Error común: interpretar coeficiente como cambio lineal en probabilidad. No lo es; depende del punto de operación por no linealidad de \(\sigma\).
+
+### 5.3 K-Nearest Neighbors (KNN)
+
+Predice según vecinos más cercanos bajo métrica (usualmente euclídea). Ventajas: simplicidad, no paramétrico. Limitaciones: sensible a escala, costo alto en inferencia, degradación en alta dimensión (curse of dimensionality). Elegir \(k\) controla sesgo-varianza: \(k\) pequeño baja sesgo, sube varianza; \(k\) grande al revés.
+
+### 5.4 Naive Bayes
+
+Basado en Bayes con independencia condicional entre features:
+\[
+P(y|x)\propto P(y)\prod_j P(x_j|y)
+\]
+
+Aunque el supuesto es fuerte y rara vez exacto, puede funcionar muy bien en texto y problemas de alta dimensionalidad dispersa.
+
+### 5.5 SVM
+
+Busca hiperplano con margen máximo. En caso no separable usa margen blando con parámetro \(C\). Con kernel trick puede representar fronteras no lineales sin mapear explícitamente a dimensión alta.
+
+- \(C\) alto: penaliza más errores, frontera más ajustada.
+- \(\gamma\) alto (RBF): fronteras más locales/onduladas, mayor riesgo de overfitting.
+
+## Capítulo 6. Árboles de decisión
+
+Los árboles aprenden reglas tipo “si-entonces” mediante particiones recursivas del espacio de features.
+
+### 6.1 Criterios de partición
+
+En clasificación se usan impurezas como Gini o entropía.
+
+\[
+Gini=1-\sum_k p_k^2,
+\quad
+Entropy=-\sum_k p_k\log p_k
+\]
+
+La ganancia de información mide reducción de impureza tras split. En regresión se usa reducción de varianza o MSE intra-nodo.
+
+### 6.2 Sobreajuste y poda
+
+Árboles profundos memorizan entrenamiento. Controlar profundidad máxima, mínimo de muestras por hoja y poda de complejidad-coste reduce varianza. Interpretabilidad alta es ventaja fuerte, pero árboles únicos suelen ser inestables: pequeñas variaciones de datos pueden cambiar estructura.
+
+### 6.3 Importancia de variables y cautelas
+
+Importancias basadas en reducción de impureza pueden sesgarse hacia variables con muchas categorías o rangos amplios. Conviene complementar con permutation importance y análisis de estabilidad.
+
+## Capítulo 7. Ensambles: bagging, boosting y stacking
+
+Combinar modelos débiles o inestables puede producir estimadores más robustos.
+
+### 7.1 Bagging y Random Forest
+
+Bagging entrena múltiples modelos sobre muestras bootstrap y promedia/vota. Reduce varianza.
+
+Random Forest agrega aleatoriedad en selección de features por split, disminuyendo correlación entre árboles. Resultado: menor varianza sin aumento fuerte de sesgo.
+
+Hiperparámetros relevantes: número de árboles, profundidad, max_features, min_samples_leaf. Más árboles suele estabilizar rendimiento hasta saturación.
+
+### 7.2 Boosting (AdaBoost, Gradient Boosting, XGBoost)
+
+Boosting construye modelos secuenciales que corrigen errores previos. En Gradient Boosting se ajusta cada nuevo árbol a gradiente negativo de la pérdida.
+
+XGBoost añade regularización explícita, shrinkage (learning rate), subsampling y manejo eficiente de faltantes. Es potente, pero sensible a tuning: learning rate muy alto o árboles muy profundos pueden sobreajustar.
+
+### 7.3 Bias-variance en ensambles
+
+Bagging: reduce varianza.
+Boosting: reduce sesgo (y puede también varianza según configuración), pero más propenso a sobreajuste si no se regula.
+
+### 7.4 Stacking
+
+Combina predicciones de modelos base mediante un meta-modelo. Debe entrenarse con predicciones out-of-fold para evitar leakage.
+
+## Capítulo 8. Clustering: estructura sin etiquetas
+
+Clustering no “descubre la verdad” automáticamente. Propone una organización posible del espacio según una métrica y un criterio.
+
+### 8.1 K-means
+
+Objetivo:
+\[
+\min_{C_1,\dots,C_K}\sum_{k=1}^K\sum_{x_i\in C_k}||x_i-\mu_k||^2
+\]
+
+Supone clusters aproximadamente esféricos y similares en tamaño bajo distancia euclídea. Sensible a escala y a inicialización. Conviene ejecutar múltiples inicializaciones (k-means++ ayuda).
+
+Elegir \(K\): método del codo, silhouette, criterio de negocio e interpretabilidad.
+
+### 8.2 Clustering jerárquico
+
+No requiere fijar \(K\) al inicio. Construye dendrograma mediante criterios de enlace (single, complete, average, Ward). Permite analizar estructura multiescala, pero escala peor en datasets grandes.
+
+### 8.3 DBSCAN
+
+Define clusters como regiones densas (\(\varepsilon\), minPts). Ventaja: detecta formas arbitrarias y etiqueta ruido explícitamente. Limitación: sensible a parámetros y dificultad en densidades variables.
+
+### 8.4 Evaluación interna y externa
+
+Interna: silhouette, Davies-Bouldin.
+Externa (si hay etiquetas de referencia): ARI, NMI.
+
+Pero ninguna métrica reemplaza interpretación de utilidad. Un clustering “matemáticamente prolijo” puede ser operativamente inútil.
+
+## Capítulo 9. Reducción de dimensionalidad
+
+La alta dimensionalidad aumenta ruido, costo computacional y dificulta visualización.
+
+### 9.1 PCA: fundamento algebraico
+
+Dado \(X\) centrado, PCA encuentra direcciones ortogonales \(w_j\) que maximizan varianza proyectada:
+\[
+\max_{||w||=1} Var(Xw)
+\]
+
+>>>>>>> theirs
+Equivale a autovectores de matriz de covarianza \(\Sigma\). Los autovalores indican varianza explicada por componente.
+
+Interpretación: PCA busca nuevas coordenadas lineales que concentren información de variabilidad. No usa target, por lo que puede descartar información predictiva si varianza no coincide con relevancia para \(y\).
+
+### 9.2 Selección de número de componentes
+
+Se usan curvas de varianza acumulada y criterio de codo, pero la decisión final debe balancear compresión, desempeño predictivo e interpretabilidad.
+
+### 9.3 Métodos no lineales
+
+t-SNE y UMAP son útiles para visualización de estructura local/global, pero no deben interpretarse como proyecciones métricamente fieles para inferencia cuantitativa estricta.
+
+## Capítulo 10. Redes neuronales y aprendizaje profundo
+
+### 10.1 Perceptrón y neurona artificial
+
+Una neurona computa:
+<<<<<<< ours
+<<<<<<< ours
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+\[
+a=\phi(w^Tx+b)
+\]
+
+<<<<<<< ours
+<<<<<<< ours
+<<<<<<< ours
+aplicando activación no lineal \(\phi\). Al apilar capas, la red compone transformaciones y aprende representaciones jerárquicas.
+
+### 8.2 Propagación hacia adelante y función de pérdida
+
+Para entrada \(x\), la red produce salida \(\hat y\). Se computa pérdida \(L(y,\hat y)\) y se actualizan parámetros para minimizarla.
+
+### 8.3 Backpropagation y descenso por gradiente
+
+Backprop aplica regla de la cadena para obtener gradientes de todos los parámetros eficientemente.
+
+Actualización simple:
+
+\[
+\theta \leftarrow \theta - \eta \nabla_\theta L
+\]
+
+con \(\eta\) tasa de aprendizaje.
+
+### 8.4 Problemas de entrenamiento y soluciones
+
+- **Vanishing/exploding gradients**: mitigación con inicialización adecuada, normalización, activaciones ReLU/variantes.
+- **Sobreajuste**: regularización L2, dropout, *early stopping*, aumento de datos.
+- **Inestabilidad**: optimizadores adaptativos (Adam), *batch normalization*.
+
+### 8.5 Cuándo usar deep learning
+
+Funciona especialmente bien con datos no estructurados (imagen, audio, lenguaje) y gran escala. En tabular pequeño/mediano, ensambles de árboles suelen competir o superar con menor costo operativo.
+
+---
+
+## Capítulo 9. Procesamiento de lenguaje natural (NLP): de texto crudo a representación semántica
+
+### 9.1 El desafío central
+
+El texto no llega como vector numérico; llega como secuencia simbólica ambigua, contextual y ruidosa. La tarea es mapear texto a representaciones útiles para inferencia.
+
+### 9.2 Pipeline clásico
+
+1. limpieza básica,
+2. tokenización,
+3. normalización (minúsculas, lematización/ stemming según objetivo),
+4. vectorización.
+
+### 9.3 BoW y TF-IDF
+
+En bolsa de palabras, cada dimensión representa término.
+
+TF-IDF pondera por frecuencia local e inversa de frecuencia documental:
+
+\[
+\text{tfidf}(t,d)=\text{tf}(t,d)\cdot \log\frac{N}{df(t)}
+\]
+
+Intuición: términos frecuentes en un documento y raros globalmente son más informativos.
+
+### 9.4 Embeddings
+
+Word embeddings densos (Word2Vec, GloVe) capturan similitud semántica distribuida. Modelos contextuales (BERT y variantes) generan representaciones dependientes del contexto de aparición.
+
+### 9.5 Limitaciones y sesgos
+
+Representaciones de lenguaje pueden codificar sesgos presentes en corpus. Evaluar equidad y riesgo reputacional es parte del trabajo profesional, no un agregado opcional.
+
+---
+
+## Capítulo 10. Series temporales: dependencia temporal, estación y pronóstico
+
+### 10.1 Por qué no vale mezclar todo al azar
+
+En series temporales, el orden importa. Hacer *shuffle* indiscriminado destruye dependencia temporal y produce evaluación ilusoria.
+
+### 10.2 Componentes conceptuales
+
+Una serie \(y_t\) puede descomponerse (según modelo) en:
+
+- tendencia,
+- estacionalidad,
+- ciclo,
+- ruido.
+
+### 10.3 Features temporales y fugas
+
+Se usan lags \(y_{t-1}, y_{t-2},\dots\), medias móviles y variables calendarias. Regla crítica: toda feature debe construirse solo con información disponible hasta tiempo \(t\). Usar datos futuros produce fuga temporal.
+
+### 10.4 Evaluación temporal
+
+Se emplea *walk-forward validation*: entrenar en ventana histórica y validar en bloque futuro, repitiendo con ventana expandida o deslizante.
+
+---
+
+## Capítulo 11. Sesgo-varianza, complejidad y regularización: marco unificador
+
+### 11.1 Descomposición conceptual
+
+Error esperado puede pensarse como combinación de:
+
+- sesgo (error sistemático por modelo demasiado rígido),
+- varianza (sensibilidad excesiva a fluctuaciones de muestra),
+- ruido irreducible.
+
+Modelos simples: alto sesgo, baja varianza.
+Modelos complejos: bajo sesgo, alta varianza.
+
+### 11.2 Herramientas prácticas
+
+- reducir complejidad del modelo,
+- regularizar,
+- aumentar datos,
 - ensambles,
-- perceptrón y redes neuronales,
-- modelos sobre texto.
+- selección de variables,
+- validación rigurosa.
 
-#### Eje 6 — Interpretar resultados
-En esta materia no se premia solamente obtener performance; también importa explicar.
-
-Hay que poder interpretar:
-
-- las primeras reglas de un árbol,
-- la importancia de variables,
-- la diferencia entre precision y recall según contexto,
-- qué representa un cluster,
-- qué preserva una técnica de reducción de dimensionalidad,
-- por qué un ensamble mejora o empeora interpretabilidad,
-- por qué cierta arquitectura de red o cierto pipeline textual tiene sentido.
-
-#### Eje 7 — Integración en problemas reales
-Los TP muestran la versión aplicada de toda la materia:
-
-- EDA real sobre taxis,
-- clasificación binaria sobre clima,
-- regresión sobre AirBnB,
-- clustering sobre Spotify,
-- regresión sobre texto para predecir story points.
-
-Eso revela algo importante: la materia no enseña conceptos aislados, sino **pipelines completos**.
+La maestría técnica consiste en navegar este compromiso según objetivo y costo del error.
 
 ---
 
-### 1.2 Conceptos fundamentales de verdad
+## Capítulo 12. Interpretabilidad y explicabilidad: entender por qué el modelo decide
 
-Estos son los conceptos que estructuran todo el resto. Si un alumno entiende de verdad estos puntos, después los temas más específicos se acomodan mucho mejor.
+### 12.1 Distinción útil
 
-#### A. Dataset, observaciones, variables, features y target
-La unidad básica de toda la materia es el dataset.
+- **Interpretabilidad intrínseca**: modelo transparente por diseño (lineales, árboles pequeños).
+- **Explicabilidad post hoc**: técnicas sobre modelos complejos (SHAP, LIME, importancia por permutación).
 
-- Una **observación** es un caso: una casa, un viaje, un cliente, una canción.
-- Una **variable** es una propiedad medida de ese caso.
-- Una **feature** es una variable usada como entrada del modelo.
-- El **target** es la variable que queremos predecir.
+### 12.2 Importancia global y local
 
-Esto parece terminología menor, pero en realidad organiza todo el pensamiento posterior.
+- Global: qué variables dominan comportamiento general.
+- Local: por qué una predicción puntual fue alta/baja.
 
-#### B. Tipo de variable y tipo de problema
-Hay una relación central entre la naturaleza de la variable objetivo y el tipo de tarea.
+Error frecuente: usar explicaciones locales como leyes universales.
 
-- Target categórico → clasificación.
-- Target numérico continuo → regresión.
-- Sin target → aprendizaje no supervisado, como clustering.
+### 12.3 Riesgos de malinterpretación
 
-Además, las variables explicativas también importan porque condicionan el preprocesamiento. No se trata igual una edad que un país, ni un texto que una categoría con 200 niveles.
+- correlación explicada como causalidad,
+- importancia alta confundida con utilidad de intervención,
+- explicaciones inestables por colinealidad fuerte.
 
-#### C. Representación
-Buena parte de la materia puede leerse como un problema de representación.
-
-Un algoritmo “ve” números, no conceptos humanos. Por eso hay que transformar:
-
-- texto en vectores,
-- categorías en codificaciones,
-- variables desbalanceadas en escalas más útiles,
-- columnas existentes en nuevas features más informativas.
-
-#### D. Generalización
-La gran pregunta del curso es: **¿el patrón aprendido sirve fuera de la muestra?**
-
-De ahí salen casi todos los temas de evaluación y regularización.
-
-#### E. Complejidad del modelo
-Un modelo demasiado simple puede no captar la estructura del problema. Uno demasiado complejo puede perseguir ruido.
-
-De acá nace la tensión entre:
-
-- bias y varianza,
-- underfitting y overfitting,
-- interpretabilidad y performance,
-- simplicidad y capacidad predictiva.
-
-#### F. Elección de métrica según costo del error
-La materia insiste mucho, y con razón, en que no existe una métrica “mejor” en abstracto.
-
-Lo correcto depende de qué error duele más.
-
-- Si me preocupan los falsos positivos, miro más precision.
-- Si me preocupan los falsos negativos, miro más recall.
-- Si quiero un balance entre ambas, F1.
-- Si estoy en regresión, necesito métricas de error como MAE, MSE o RMSE.
-
-#### G. Interpretabilidad
-Especialmente con árboles, Random Forest, reducción de dimensionalidad y clustering, la materia pide explicar lo que el modelo está haciendo, no solo reportar un score.
+Un sistema profesional combina explicación técnica con conocimiento de dominio y revisión crítica.
 
 ---
 
-### 1.3 Dependencias conceptuales
+## Capítulo 13. Diseño experimental, selección de modelos y tuning de hiperparámetros
 
-Estas relaciones son claves porque muestran qué conviene entender primero.
+### 13.1 Hiperparámetros versus parámetros
 
-- Para entender **clasificación, regresión y clustering**, primero hay que entender **tipos de variable y objetivo del problema**.
-- Para entender **métricas**, primero hay que entender **qué significa equivocarse en cada tarea**.
-- Para entender **precision y recall**, antes hay que entender **matriz de confusión**.
-- Para entender **overfitting y underfitting**, antes hay que entender **generalización** y la diferencia entre entrenamiento y test.
-- Para entender **bias-varianza**, antes hay que entender **complejidad del modelo**.
-- Para entender **árboles**, antes hay que entender **cómo se decide una partición útil**.
-- Para entender **poda**, antes hay que entender **por qué un árbol puede sobreajustar**.
-- Para entender **Random Forest**, antes hay que entender **árboles individuales**, bootstrap y reducción de varianza.
-- Para entender **bagging y boosting**, antes hay que entender **por qué combinar modelos puede mejorar resultados**.
-- Para entender **XGBoost**, antes hay que entender **boosting**.
-- Para entender **K-Means**, antes hay que entender **distancia y similitud entre observaciones**.
-- Para entender **silhouette** y **elbow**, antes hay que entender **qué significa que un clustering sea “bueno”**.
-- Para entender **PCA**, antes hay que entender **varianza, colinealidad y alta dimensión**.
-- Para entender **ISOMAP** y **t-SNE**, antes hay que entender que distintas técnicas preservan distintas propiedades geométricas.
-- Para entender **perceptrón multicapa**, antes hay que entender la limitación del **perceptrón simple**.
-- Para entender **backpropagation**, antes hay que entender que una red aprende ajustando pesos para reducir una función de pérdida.
-- Para entender **NLP aplicado**, antes hay que entender que el texto debe pasar de lenguaje natural a representación numérica.
+- Parámetros: aprendidos del dato (pesos, coeficientes).
+- Hiperparámetros: configuran el aprendizaje (profundidad de árbol, \(C\), \(\lambda\), learning rate).
+
+### 13.2 Búsqueda
+
+- Grid Search: exhaustiva en grilla fija.
+- Random Search: más eficiente en espacios amplios.
+- Bayesian optimization: explota estructura del problema de búsqueda.
+
+### 13.3 Regla de oro
+
+El conjunto de test no participa en selección de hiperparámetros. Se reserva para estimación final.
+
+### 13.4 Comparación estadística
+
+Diferencias pequeñas de métrica pueden no ser robustas. Conviene observar dispersión por folds y estabilidad en distintos cortes temporales/poblacionales.
 
 ---
 
-### 1.4 Temas estructurantes vs temas más aislados
+## Capítulo 14. MLOps y ciclo de vida: del notebook al sistema confiable
 
-#### Temas estructurantes
-Son los que reaparecen en teoría, TP y examen, y además sirven para conectar muchos otros temas.
+### 14.1 Reproducibilidad
 
-- tipo de problema,
-- EDA,
-- preprocesamiento,
+Debe poder reconstruirse:
+
+- datos usados,
+- versión de código,
+- hiperparámetros,
 - métricas,
-- train/test y validación cruzada,
-- overfitting / underfitting / bias-varianza,
-- árboles y Random Forest,
-- reducción de dimensionalidad,
-- ensambles,
-- interpretación de resultados.
+- artefactos de modelo.
 
-#### Temas importantes pero más locales
-Son relevantes, pero dependen más de un bloque puntual o del TP específico.
+Sin reproducibilidad no hay auditoría técnica.
 
-- perceptrón simple,
-- SOM,
-- detalles de funciones de activación,
-- Kaggle como contexto de evaluación,
-- algunas herramientas puntuales de Pandas o WEKA.
+### 14.2 Despliegue y monitoreo
 
-#### Lagunas o desprolijidades detectadas entre materiales
-No todos los materiales tienen la misma profundidad.
+Luego de producción, el problema cambia: ahora importa detectar degradación.
 
-- Los parciales privilegian preguntas conceptuales cortas, comparativas y aplicadas.
-- Los TP piden más justificación de pipeline, más detalle operativo y más integración.
-- Algunas respuestas de resolución están simplificadas, así que conviene tomarlas como orientación de foco evaluativo y no como desarrollo teórico exhaustivo.
-- Algunos temas aparecen más abiertos en finales o parciales recientes que en la guía tradicional, especialmente ensambles, redes y problemas sobre texto.
+Tipos de drift:
 
-La decisión editorial de este resumen será priorizar lo que está mejor sostenido por la combinación entre contenidos generales, TP y exámenes.
+- **Data drift**: cambia distribución de \(X\).
+- **Concept drift**: cambia \(P(Y\mid X)\).
+
+Se monitorean métricas de negocio y de modelo, con umbrales y políticas de reentrenamiento.
+
+### 14.3 Latencia, costo y robustez
+
+Un modelo excelente offline puede ser inviable online por latencia o costo. Ingeniería de sistemas y modelado deben co-diseñarse.
 
 ---
 
-## 2. TEMARIO REALMENTE IMPORTANTE PARA APROBAR
+## Capítulo 15. Ética, sesgo algorítmico y gobernanza
 
-### 2.1 Ranking de temas por importancia real
+### 15.1 Por qué este capítulo es técnico y no ornamental
 
-#### Núcleo de examen
-Son los temas que más conviene dominar con seguridad alta.
+Las decisiones automáticas impactan personas. La calidad de un modelo no se reduce a precisión; incluye justicia, seguridad, transparencia y posibilidad de apelación.
 
-1. **Métricas de evaluación**
-   - precision, recall, accuracy, F1, matriz de confusión;
-   - MAE, MSE, RMSE;
-   - elección de métricas según contexto.
+### 15.2 Fuentes de sesgo
 
-2. **Overfitting, underfitting, bias y varianza**
-   - detección,
-   - causas,
-   - formas de mitigación.
+- sesgo de muestreo,
+- sesgo de etiqueta,
+- sesgo histórico,
+- sesgo de despliegue (uso fuera del dominio de entrenamiento).
 
-3. **Preprocesamiento e ingeniería de características**
-   - faltantes,
-   - outliers,
-   - encoding,
-   - escalado,
-   - transformaciones,
-   - creación de variables,
-   - ejemplos concretos de TP.
+### 15.3 Métricas de equidad (visión introductoria)
 
-4. **Árboles de decisión y Random Forest**
-   - entropía,
-   - ganancia de información,
-   - Gini,
-   - poda,
-   - atributos numéricos,
-   - importancia de variables,
-   - comparación árbol vs RF.
+Diferentes nociones pueden ser incompatibles entre sí (paridad demográfica, igualdad de oportunidades, etc.). No existe criterio único universal; se elige según contexto normativo y riesgo social.
 
-5. **Diferencia entre clasificación, regresión y clustering**
-   - con ejemplos,
-   - con algoritmos posibles,
-   - con métrica adecuada para cada caso.
+### 15.4 Gobernanza mínima responsable
 
-6. **Reducción de dimensionalidad**
-   - para qué sirve,
-   - scree plot,
-   - PCA,
-   - ISOMAP,
-   - t-SNE,
-   - criterio de elección.
-
-7. **Ensambles**
-   - bagging vs boosting,
-   - stacking vs voting,
-   - homogéneos vs híbridos,
-   - conexión con Random Forest y XGBoost.
-
-#### Importante pero secundario
-Conviene saberlo bien, aunque suele aparecer con menor densidad o menor detalle.
-
-- K-Means,
-- Hopkins,
-- elbow,
-- silhouette,
-- interpretación de clusters,
-- regresión lineal y logística a nivel conceptual,
-- one-hot con alta cardinalidad y alternativas,
-- activaciones en redes,
-- optimizadores,
-- early stopping,
-- SOM.
-
-#### Complementario
-Puede entrar, sobre todo en trabajos prácticos, finales o preguntas abiertas, pero no parece ser el corazón recurrente del parcial.
-
-- detalles operativos de Pandas,
-- WEKA,
-- SentiWordNet,
-- pormenores de herramientas de competencia Kaggle,
-- arquitecturas más avanzadas de deep learning si no fueron trabajadas directamente por el grupo.
+- documentación de datos/modelo,
+- evaluación por subgrupos,
+- trazabilidad de decisiones,
+- protocolos de auditoría y revisión humana.
 
 ---
 
-### 2.2 Qué forma tienen las preguntas de examen
+## Capítulo 16. Ejemplo integrador completo: de problema crudo a solución evaluada
 
-#### Patrón 1 — Comparaciones entre conceptos parecidos
-Esto aparece mucho porque revela comprensión real.
+Supongamos objetivo: predecir morosidad en créditos de consumo.
 
-Ejemplos típicos:
+1. **Definición de target**: mora > 90 días dentro de 12 meses.
+2. **Unidad de análisis**: solicitud de crédito.
+3. **Partición temporal**: train (2022-2024), validación (2025H1), test (2025H2).
+4. **EDA**: desbalance 8% positivos, faltantes MNAR en ingreso declarado.
+5. **Preprocesamiento**: imputación por segmento + indicador de faltante; one-hot para categóricas moderadas; target encoding con validación interna para alta cardinalidad.
+6. **Modelos**: baseline logístico regularizado, Random Forest, XGBoost.
+7. **Métrica principal**: AUC-PR y recall en umbral de costo definido por riesgo.
+8. **Calibración**: isotonic/Platt según desempeño.
+9. **Interpretabilidad**: SHAP global/local + análisis por segmento.
+10. **Monitoreo en producción**: drift de ingreso, empleo y comportamiento de pago.
 
-- clasificación vs regresión vs clustering,
-- precision vs recall,
-- bagging vs boosting,
-- stacking vs voting,
-- homogéneo vs híbrido,
-- overfitting vs underfitting,
-- outlier univariado vs multivariado,
-- PCA vs t-SNE vs ISOMAP.
-
-Acá no alcanza con una definición suelta. Hay que marcar:
-
-- qué tienen en común,
-- en qué se distinguen,
-- qué problema resuelve cada uno,
-- cuándo usar uno y no otro.
-
-#### Patrón 2 — Preguntas de criterio
-Son muy importantes porque obligan a justificar.
-
-Ejemplos:
-
-- qué métrica usarías y por qué,
-- qué técnica de reducción elegirías y por qué,
-- qué harías con una variable categórica de 200 categorías,
-- qué técnica usarías para evitar overfitting,
-- cómo tratarías faltantes u outliers en un caso real.
-
-#### Patrón 3 — Preguntas conectadas con TP
-No preguntan el TP como relato administrativo, sino como evidencia de que el alumno sabe explicar decisiones metodológicas.
-
-Por eso conviene poder contar:
-
-- qué se hizo,
-- por qué se hizo,
-- qué alternativas había,
-- cómo impactó en la evaluación,
-- qué resultados produjo.
-
-#### Patrón 4 — Cálculo e interpretación de métricas
-Aparecen matrices de confusión y pedidos de cálculo o interpretación.
-
-Acá suelen evaluar dos cosas a la vez:
-
-- manejo formal de las fórmulas,
-- comprensión del significado de cada número.
-
-#### Patrón 5 — Respuestas breves pero técnicamente precisas
-No suelen ser desarrollos matemáticos largos. El desafío está más en responder con exactitud conceptual y ejemplos bien elegidos.
+Este flujo muestra el principio rector del tratado: no hay paso aislado; cada decisión depende de la anterior y condiciona la siguiente.
 
 ---
 
-### 2.3 Errores frecuentes y trampas conceptuales
+## Capítulo 17. Errores típicos en examen y en práctica profesional
 
-#### Error 1 — Elegir métrica por costumbre
-Muchos alumnos contestan accuracy porque es la más conocida. Eso suele ser superficial.
+1. Elegir algoritmo antes de definir problema y métrica.
+2. Usar accuracy con fuerte desbalance sin análisis adicional.
+3. Hacer preprocesamiento antes del split (fuga).
+4. Confundir correlación con causalidad.
+5. Evaluar con test durante tuning.
+6. Ignorar costo diferencial de errores.
+7. Celebrar métricas sin revisar calibración ni estabilidad temporal.
+8. Suponer que explicación post hoc equivale a prueba causal.
 
-Si las clases están desbalanceadas, accuracy puede ser engañosa. La materia claramente espera que el alumno piense el costo del error.
-
-#### Error 2 — Confundir precision con recall
-La forma más segura de no confundirse es esta:
-
-- **precision** mira los positivos predichos por el modelo y pregunta cuántos eran correctos;
-- **recall** mira los positivos reales y pregunta cuántos logró capturar el modelo.
-
-#### Error 3 — Decir “overfitting es cuando anda mal”
-Eso es insuficiente. Hay que decir que el modelo ajusta demasiado el entrenamiento, pierde generalización y suele mostrar brecha entre entrenamiento y test.
-
-#### Error 4 — Tratar el preprocesamiento como receta automática
-No hay una receta universal. El valor del curso está en justificar decisiones según el problema.
-
-#### Error 5 — Pensar que reducir dimensión siempre es para “que haya menos columnas”
-Eso es parcialmente cierto, pero pobre. También sirve para:
-
-- reducir ruido,
-- mitigar colinealidad,
-- visualizar,
-- facilitar aprendizaje,
-- evitar sobreajuste.
-
-#### Error 6 — Memorizar nombres de técnicas sin entender qué preservan
-Esto es especialmente peligroso con PCA, ISOMAP y t-SNE.
-
-- PCA prioriza varianza explicada.
-- ISOMAP busca respetar la geometría de una variedad.
-- t-SNE favorece preservar vecindades y separación visual de clusters.
-
-#### Error 7 — Describir Random Forest como “un árbol mejor”
-No es un árbol un poco más grande, sino un ensamble de muchos árboles con bootstrap y aleatoriedad en features para reducir varianza.
-
-#### Error 8 — Suponer que más complejidad siempre significa mejor modelo
-La materia insiste bastante en que más complejidad puede llevar a peor generalización.
-
-#### Error 9 — En texto, olvidar que el algoritmo no entiende palabras directamente
-Antes de usar Bayes, Random Forest o redes sobre texto, hay que convertir documentos a vectores.
+Dominar la materia implica detectar y prevenir estos errores de forma sistemática.
 
 ---
 
-## 3. ESTRUCTURA PROPUESTA DEL RESUMEN
+## Capítulo 18. Guía de estudio para dominio experto
 
-### 3.1 Índice ideal
+Para consolidar un nivel alto, cada tema debe poder responderse en tres registros:
 
-1. Cómo pensar un problema de ciencia de datos.
-2. Cómo leer un dataset antes de modelar.
-3. Cómo preparar los datos para que el modelo aprenda bien.
-4. Cómo evaluar modelos sin engañarse.
-5. Modelos supervisados: ideas centrales y criterios de elección.
-6. Árboles y ensambles: el bloque más preguntable.
-7. Aprendizaje no supervisado: clustering.
-8. Reducción de dimensionalidad: qué preserva cada técnica.
-9. Redes neuronales: intuición, límites y regularización.
-10. Texto como dato: NLP aplicado en la materia.
-11. Estrategia práctica para rendir y para defender TPs.
+1. **Intuitivo**: explicar en lenguaje claro qué problema resuelve.
+2. **Formal**: escribir la formulación matemática esencial y definir símbolos.
+3. **Aplicado**: justificar decisiones metodológicas en un caso real.
 
----
+Si falta uno de los tres, el aprendizaje está incompleto.
 
-### 3.2 Por qué este orden y no el orden histórico de clase
+Un buen entrenamiento para examen oral o escrito es tomar cada técnica y responder:
 
-El mejor orden pedagógico no es “tema 1, tema 2, tema 3” según el calendario, sino el orden en que una mente principiante puede construir comprensión sólida.
-
-Primero conviene responder:
-
-- qué problema tengo,
-- qué datos tengo,
-- cómo los miro,
-- cómo los limpio,
-- cómo sé si el modelo funciona.
-
-Recién después tiene sentido entrar en familias de algoritmos.
-
-Esto evita un error muy común: aprender nombres de modelos sin haber entendido todavía qué significa evaluar, generalizar o representar bien un dataset.
+- cuándo usarla,
+- cuándo no usarla,
+- qué asume,
+- cómo se evalúa,
+- qué errores comete un principiante,
+- cómo defender su uso frente a alternativas.
 
 ---
 
-### 3.3 Estrategia didáctica de cada sección
-
-#### Sección 1 — Cómo pensar un problema
-- **Problema que introduce:** el alumno ve datasets pero no sabe qué está tratando de resolver.
-- **Intuición inicial:** toda tarea de ML depende de qué quiero predecir y qué información tengo.
-- **Formalización posterior:** clasificación, regresión, clustering, supervisado/no supervisado.
-- **Ejemplo útil:** spam, precio de vivienda, segmentación de canciones.
-- **Confusión a evitar:** confundir variable objetivo con variables de entrada.
-
-#### Sección 2 — Leer el dataset
-- **Problema:** modelar sin conocer los datos.
-- **Intuición:** primero hay que mirar el terreno antes de construir encima.
-- **Formalización:** análisis univariado, multivariado, distribuciones, frecuencias, correlaciones.
-- **Ejemplo:** taxis, Titanic, ventas.
-- **Confusión a evitar:** creer que EDA es solo hacer gráficos lindos.
-
-#### Sección 3 — Preprocesamiento
-- **Problema:** los datos reales vienen incompletos, ruidosos o en formatos inapropiados.
-- **Intuición:** el modelo hereda la calidad de la representación.
-- **Formalización:** imputación, outliers, encoding, normalización, transformaciones, feature engineering.
-- **Ejemplo:** variable con 200 categorías, precios sesgados, texto a vectores.
-- **Confusión a evitar:** aplicar técnicas por costumbre sin justificar.
-
-#### Sección 4 — Evaluación
-- **Problema:** creer que un score aislado alcanza.
-- **Intuición:** entrenar bien no es lo mismo que generalizar bien.
-- **Formalización:** split, CV, matriz de confusión, métricas, bias-varianza.
-- **Ejemplo:** enfermedad, fraude, precio de alquiler.
-- **Confusión a evitar:** usar accuracy siempre.
-
-#### Sección 5 — Modelos supervisados
-- **Problema:** elegir modelo sin criterio.
-- **Intuición:** cada algoritmo mira el problema de una manera distinta.
-- **Formalización:** regresión lineal, logística, árboles, KNN, SVM, XGBoost.
-- **Ejemplo:** comparar interpretabilidad y performance.
-- **Confusión a evitar:** pensar que existe un modelo universalmente mejor.
+## Cierre: arquitectura conceptual de la materia
 
-#### Sección 6 — Árboles y ensambles
-- **Problema:** entender el bloque más evaluado.
-- **Intuición:** un árbol decide haciendo preguntas sucesivas; un ensamble combina muchos modelos para mejorar estabilidad o potencia.
-- **Formalización:** entropía, Gini, poda, bagging, boosting, stacking, voting.
-- **Ejemplo:** lluvia en Australia, Random Forest, XGBoost.
-- **Confusión a evitar:** mezclar bagging con boosting o pensar que Random Forest y XGBoost son casi lo mismo.
+La ciencia de datos se vuelve coherente cuando se entiende su arquitectura:
 
-#### Sección 7 — Clustering
-- **Problema:** agrupar sin etiquetas.
-- **Intuición:** encontrar parecidos útiles cuando nadie nos dijo la respuesta correcta.
-- **Formalización:** K-Means, Hopkins, elbow, silhouette.
-- **Ejemplo:** canciones de Spotify.
-- **Confusión a evitar:** creer que un cluster “descubre verdades naturales” sin interpretación humana.
+1. plantear bien el problema,
+2. construir representación útil de datos,
+3. entrenar con criterio estadístico,
+4. evaluar para generalizar,
+5. interpretar y decidir,
+6. operar y auditar en producción.
 
-#### Sección 8 — Reducción de dimensionalidad
-- **Problema:** demasiadas variables, ruido o dificultad para visualizar.
-- **Intuición:** resumir sin destruir la estructura importante.
-- **Formalización:** PCA, scree plot, t-SNE, ISOMAP.
-- **Ejemplo:** elegir técnica según objetivo.
-- **Confusión a evitar:** usarlas como sinónimos.
+Cada módulo del curso ocupa una pieza de esta arquitectura. Aprender “en serio” no es acumular técnicas, sino integrar estas piezas en un proceso disciplinar robusto.
 
-#### Sección 9 — Redes neuronales
-- **Problema:** entender cómo una red supera la limitación lineal del perceptrón.
-- **Intuición:** una red aprende transformaciones sucesivas de los datos.
-- **Formalización:** perceptrón, MLP, backpropagation, optimizadores, regularización.
-- **Ejemplo:** XOR, clasificación, regresión sobre texto.
-- **Confusión a evitar:** usar palabras como backprop u optimizador sin explicar su función real.
+Cuando este proceso está internalizado, el estudiante deja de preguntar “¿qué modelo uso?” como primera reacción. Empieza a preguntar, con precisión profesional: **¿qué decisión quiero sostener, con qué evidencia, bajo qué supuestos y con qué riesgos?** En ese punto, la materia deja de ser un conjunto de temas y se convierte en competencia experta.
+=======
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+\(w\): pesos, \(b\): sesgo, \(\phi\): activación (ReLU, sigmoid, tanh). Una capa lineal sin activación no agrega no linealidad; múltiples capas con activaciones permiten aproximar funciones complejas.
 
-#### Sección 10 — NLP aplicado
-- **Problema:** el texto no es numérico.
-- **Intuición:** antes de predecir con texto, hay que convertir lenguaje en representación matemática.
-- **Formalización:** bag of words, TF-IDF, Bayes Naïve, regresión sobre texto, ensambles, redes.
-- **Ejemplo:** sentimiento y story points.
-- **Confusión a evitar:** creer que el modelo “lee” comprensión semántica humana.
+### 10.2 Función de pérdida y backpropagation
 
----
+Entrenar red implica minimizar pérdida \(\mathcal{L}(\theta)\) con descenso por gradiente (SGD/Adam):
+\[
+\theta_{t+1}=\theta_t-\eta\nabla_\theta \mathcal{L}(\theta_t)
+\]
 
-## 4. RESUMEN FINAL COMPLETO
+Backpropagation aplica regla de la cadena para propagar gradientes desde salida hacia capas internas.
 
-### 4.1 Cómo pensar correctamente un problema de ciencia de datos
+### 10.3 Riesgos y regularización
 
-La primera habilidad que esta materia quiere construir no es programar, ni graficar, ni usar un algoritmo famoso. Es algo más básico y más importante: **aprender a mirar una situación y reconocer qué tipo de problema es**.
+Redes profundas tienen alta capacidad: pueden sobreajustar si datos son pocos o ruidosos. Herramientas: dropout, weight decay, early stopping, data augmentation, batch normalization.
 
-Eso importa porque en ciencia de datos casi todas las decisiones buenas nacen de una buena formulación inicial. Si formulás mal el problema, después todo lo demás se encadena mal: el modelo, la métrica, el preprocesamiento y la interpretación.
+### 10.4 Cuándo usar deep learning
 
-#### El punto de partida: de qué están hechos los problemas
-Un dataset puede pensarse como una tabla donde cada fila representa un caso y cada columna una propiedad de ese caso.
+Es ventajoso con datos masivos no estructurados (imagen, audio, texto) y patrones complejos. En tablas pequeñas/medianas, modelos de árboles frecuentemente compiten o superan con menor costo y mayor interpretabilidad.
 
-Ejemplos:
+## Capítulo 11. Procesamiento de lenguaje natural (NLP)
 
-- en AirBnB, una fila puede ser un alojamiento;
-- en el TP de clima, una fila puede ser un día en una estación meteorológica;
-- en Spotify, una fila puede ser una canción;
-- en story points, una fila puede ser una user story.
+El texto debe transformarse en representación numérica.
 
-Ahora bien: entre todas las columnas, hay una que a veces queremos predecir. Esa columna es el **target**. Las demás suelen funcionar como **features**.
+### 11.1 Pipeline básico
 
-#### Clasificación, regresión y clustering: la gran tríada
-La pregunta clave es: **¿qué forma tiene la respuesta que busco?**
+Normalización, tokenización, manejo de stopwords, stemming/lemmatización según objetivo. No existe preprocesamiento universal: eliminar negaciones puede destruir señal en análisis de sentimiento.
 
-##### Clasificación
-Hay clasificación cuando el objetivo es elegir entre categorías definidas de antemano.
+### 11.2 Bag of Words y TF-IDF
 
-Ejemplos:
+En BoW, cada documento se representa por conteos de términos. TF-IDF pondera términos frecuentes en documento pero raros en corpus:
+\[
+TFIDF(t,d)=TF(t,d)\cdot\log\frac{N}{df(t)}
+\]
 
-- lloverá / no lloverá,
-- spam / no spam,
-- enfermo / sano,
-- sentimiento positivo / negativo.
+Ventaja: simplicidad e interpretabilidad. Limitación: ignora orden y contexto semántico profundo.
 
-La intuición correcta es imaginar que el modelo tiene que decidir “en qué casillero cae este caso”.
+### 11.3 Embeddings
 
-##### Regresión
-Hay regresión cuando el objetivo es predecir un valor numérico continuo.
+Word2Vec/GloVe asignan vectores densos que capturan proximidad semántica. Modelos contextualizados (BERT y derivados) producen embeddings dependientes del contexto. Esto resuelve ambigüedad léxica parcial y mejora tareas complejas.
 
-Ejemplos:
+### 11.4 Modelado y evaluación en NLP
 
-- precio de alquiler,
-- story points,
-- duración de un viaje,
-- consumo esperado.
+Clasificación de texto usa frecuentemente logística, SVM, árboles o transformers. Métricas: accuracy/F1, pero con clases desbalanceadas conviene macro-F1. En recuperación y ranking, métricas como MAP o NDCG cobran relevancia.
 
-Acá el modelo no tiene que elegir una etiqueta, sino estimar un número.
+## Capítulo 12. Integración metodológica: arquitectura completa de un proyecto
 
-##### Clustering
-Hay clustering cuando no hay una respuesta correcta dada de antemano y lo que se busca es encontrar agrupamientos por similitud.
+Una visión experta entiende la materia como sistema integrado:
 
-Ejemplo:
+1. Formular problema y criterio de éxito.
+2. Auditar datos y riesgos (calidad, sesgo, leakage).
+3. Diseñar representación y pipeline reproducible.
+4. Entrenar baselines simples.
+5. Comparar modelos con validación rigurosa.
+6. Ajustar hiperparámetros con control de sobreajuste.
+7. Interpretar resultados y calibrar decisión.
+8. Validar robustez y equidad.
+9. Preparar despliegue, monitoreo y retraining.
 
-- agrupar canciones según características acústicas.
+### 12.1 Reproducibilidad
 
-La diferencia profunda con clasificación es que en clasificación los grupos ya están definidos desde el principio; en clustering, los grupos se construyen a partir de la estructura de los datos.
+Semillas aleatorias, versionado de datos y código, trazabilidad de experimentos. Sin reproducibilidad no hay ciencia ni auditoría técnica seria.
 
-#### Por qué esta distinción es tan importante
-Porque cambia todo.
+### 12.2 Sesgo, equidad y deriva
 
-- Cambia la familia de algoritmos razonables.
-- Cambia la forma de evaluar.
-- Cambia el tipo de errores que importan.
-- Cambia incluso cómo comunicar el resultado.
+Un modelo puede ser globalmente preciso y perjudicar subgrupos específicos. Hay que evaluar métricas segmentadas. Tras despliegue, distribución de datos cambia (data drift) y relación \(X\to y\) puede degradarse (concept drift). Monitorear deriva es obligatorio en sistemas vivos.
 
-Un error muy común en examen es contestar esto de manera demasiado corta. No alcanza con decir “clasificación predice clases y regresión números”. Conviene agregar siempre:
+### 12.3 Interpretabilidad y explicabilidad
 
-- un ejemplo,
-- una métrica típica,
-- y una consecuencia práctica.
+Interpretabilidad intrínseca (modelos simples, coeficientes, reglas) vs explicabilidad post-hoc (SHAP, LIME, PDP). Explicar no es justificar causalmente; es describir comportamiento del modelo bajo supuestos locales o globales.
 
-#### Supervisado y no supervisado
-La clasificación y la regresión son problemas de **aprendizaje supervisado** porque durante el entrenamiento el modelo ve ejemplos con la respuesta correcta.
+## Capítulo 13. Estrategia para examen y dominio experto
 
-El clustering, en cambio, es **no supervisado**, porque el dataset no trae una etiqueta objetivo que diga cuál es la respuesta esperada.
+Responder bien en examen requiere más que definiciones memorizadas. Se evalúa capacidad de argumentar decisiones.
 
-Esta distinción es importante porque explica por qué en clustering la evaluación es distinta y la interpretación humana tiene más peso.
+### 13.1 Qué suelen exigir
 
-**Cómo podría aparecer en examen:** comparación entre clasificación, regresión y agrupamiento con ejemplo y algoritmo posible.
+- Diferenciar tareas (clasificación/regresión/clustering) con implicancias métricas.
+- Justificar pipeline de preprocesamiento.
+- Detectar leakage y errores de validación.
+- Comparar modelos por sesgo-varianza, interpretabilidad y costo.
+- Interpretar métricas según contexto de error.
 
-**Error típico a evitar:** mezclar “variable cualitativa” con “modelo de clasificación” como si fueran exactamente lo mismo. La variable objetivo suele ser categórica en clasificación, pero las features pueden ser mixtas.
+### 13.2 Errores que penalizan
 
----
+- Elegir accuracy en clases muy desbalanceadas sin discusión.
+- Escalar o imputar con todo el dataset antes del split.
+- Afirmar causalidad desde modelos predictivos.
+- Describir técnicas sin conectar con el problema planteado.
 
-### 4.2 Leer un dataset: por qué el análisis exploratorio no es un trámite
+### 13.3 Cómo construir respuestas de alto nivel
 
-Muchos estudiantes quieren llegar rápido al modelo. La materia, en cambio, enseña algo más maduro: antes de modelar, hay que **entender el material con el que se trabaja**.
+Una buena respuesta suele seguir esta secuencia: definir el problema, formalizarlo, proponer método, justificar supuestos, discutir limitaciones, interpretar resultados y señalar alternativas. Mostrar conciencia de límites vale tanto como exponer fortalezas.
 
-Pensalo así: entrenar un modelo sin mirar el dataset es como querer diagnosticar a un paciente sin revisar síntomas, estudios ni antecedentes.
+## Conclusión: de ejecutar algoritmos a razonar científicamente
 
-#### Qué busca realmente el EDA
-El análisis exploratorio de datos busca responder preguntas como:
+Dominar ciencia de datos es pasar de la ejecución instrumental al razonamiento científico aplicado. Un profesional sólido no se define por conocer más librerías, sino por poder explicar por qué una representación es válida, por qué una métrica es coherente con el costo del error, por qué un experimento está bien diseñado y por qué un resultado merece confianza.
 
-- ¿qué variables hay?
-- ¿qué representa cada una?
-- ¿son cuantitativas o cualitativas?
-- ¿cómo se distribuyen?
-- ¿hay valores imposibles o sospechosos?
-- ¿hay correlaciones relevantes?
-- ¿qué patrones llaman la atención?
-
-#### Análisis univariado: entender una variable por vez
-Este es el primer paso porque construye intuición básica.
-
-Para variables cuantitativas suelen mirarse:
-
-- media,
-- mediana,
-- moda,
-- dispersión,
-- histogramas,
-- boxplots.
-
-La idea no es coleccionar estadísticas, sino aprender a “leer el carácter” de la variable.
-
-Por ejemplo, si una distribución de precios tiene una cola muy larga hacia la derecha, uno entiende que hay pocas observaciones muy caras que estiran la escala. Eso ya anticipa posibles transformaciones, como logaritmos.
-
-Para variables cualitativas suelen mirarse:
-
-- categorías posibles,
-- frecuencias,
-- proporciones,
-- gráficos de barras.
-
-Eso sirve para detectar categorías dominantes, rarezas o clases desbalanceadas.
-
-#### Análisis multivariado: cuando el sentido aparece en la relación entre variables
-Muchas veces el dato interesante no está en una columna aislada, sino en cómo se combinan varias.
-
-Acá aparecen:
-
-- correlaciones,
-- scatter plots,
-- tablas cruzadas,
-- segmentaciones por grupos,
-- comparaciones condicionadas.
-
-Por ejemplo, no solo interesa saber cuánto dura un viaje, sino cómo cambia según horario, día o zona. No solo interesa el precio de un alojamiento, sino cómo se relaciona con ubicación, tamaño o tipo de propiedad.
-
-#### Correlación: qué dice y qué no dice
-La correlación lineal de Pearson aparece en materiales y recuperatorios porque es útil, pero también porque puede confundir si se usa superficialmente.
-
-La intuición es esta:
-
-- correlación positiva fuerte: cuando una variable sube, la otra tiende a subir;
-- correlación negativa fuerte: cuando una sube, la otra tiende a bajar;
-- correlación baja: no hay evidencia de relación lineal fuerte.
-
-Lo importante es remarcar “lineal”. Puede existir relación no lineal aunque Pearson sea bajo.
-
-#### Visualizar bien también es pensar bien
-La guía práctica insiste bastante en los gráficos, y eso no es decorativo.
-
-Un buen gráfico ayuda a ver:
-
-- distribuciones,
-- asimetrías,
-- anomalías,
-- relaciones,
-- segmentos,
-- resultados del preprocesamiento.
-
-En TP y examen conviene recordar que los gráficos deben poder leerse y justificar una idea, no ser solo imágenes insertadas.
-
-**Cómo podría aparecer en examen:** interpretación de correlaciones, análisis de distribuciones, relación entre tipo de variable y análisis apropiado.
-
-**Error típico a evitar:** creer que EDA es una lista de gráficos estándar. El valor está en la lectura que se hace de ellos.
-
----
-
-### 4.3 Preprocesamiento: cómo convertir datos reales en datos modelables
-
-Esta es una de las partes más formativas de la materia porque obliga a salir del mundo ideal. Los datos reales rara vez vienen limpios, completos y cómodos.
-
-La idea profunda del preprocesamiento es que **un algoritmo aprende sobre la representación que le damos del problema**. Si la representación es mala, el aprendizaje también lo será.
-
-#### Datos faltantes: no son solo huecos, son decisiones
-Cuando faltan valores, el primer impulso suele ser “rellenarlos” o “borrar filas”. Pero la pregunta correcta es otra: **¿por qué faltan y qué costo tiene cada decisión?**
-
-Opciones frecuentes:
-
-- eliminar registros,
-- imputar con media, mediana, moda,
-- imputar con criterios por grupo,
-- crear indicadores de ausencia,
-- descartar variables con demasiada pérdida.
-
-La mejor decisión depende del contexto. Si elimino masivamente, quizá pierda información. Si imputo mal, quizá introduzca un patrón artificial.
-
-En examen suma mucho no solo nombrar técnicas, sino explicar el criterio de elección.
-
-#### Outliers: por qué no siempre hay que borrarlos
-Un outlier es una observación muy alejada del resto. Pero esa definición, sola, es insuficiente. Lo importante es entender que puede ser:
-
-- un error,
-- una rareza legítima,
-- una anomalía interesante,
-- una señal importante del dominio.
-
-Por eso la materia insiste en inspeccionarlos “cuidadosamente”.
-
-##### Univariados
-Se detectan mirando una variable a la vez.
-
-Herramientas típicas:
-
-- IQR,
-- z-score,
-- z-score modificado,
-- boxplots.
-
-##### Multivariados
-Aparecen cuando una observación no parece rara en cada variable por separado, pero sí en la combinación.
-
-Herramientas típicas:
-
-- distancia de Mahalanobis,
-- LOF,
-- Isolation Forest,
-- clustering.
-
-La intuición útil es esta: una manzana naranja quizá no parezca rara si mirás solo color o solo forma, pero sí al mirar ambas cosas juntas.
-
-#### Encoding: cuando las categorías deben volverse números
-Muchos algoritmos necesitan entradas numéricas. Entonces las variables categóricas deben codificarse.
-
-El caso clásico es **one-hot encoding**, que crea una columna por categoría.
-
-Esto funciona bien cuando hay pocas categorías, pero trae problemas cuando la cardinalidad es muy alta. Los parciales recientes lo remarcan explícitamente con el ejemplo de una variable con 200 categorías.
-
-¿Por qué es problemático?
-
-- explota la dimensionalidad,
-- genera mucha sparsity,
-- aumenta costo computacional,
-- puede empeorar interpretabilidad,
-- puede favorecer overfitting.
-
-Alternativas razonables:
-
-- agrupar categorías raras en “otros”,
-- usar otros esquemas de encoding,
-- embeddings en escenarios más complejos.
-
-#### Escalado y normalización: por qué algunas variables necesitan ponerse “en la misma escala”
-No todos los algoritmos son igual de sensibles a la escala. Si una variable está en miles y otra entre 0 y 1, ciertos métodos pueden quedar dominados por la primera.
-
-La intuición es simple: algunas técnicas “miden distancia” o dependen de magnitudes relativas. En esos casos conviene escalar.
-
-#### Transformaciones
-Si una variable tiene fuerte asimetría positiva, una transformación logarítmica puede hacerla más estable y manejable. Esto aparece claramente en parciales.
-
-La idea no es “embellecer” la variable, sino facilitar:
-
-- modelado,
-- interpretación,
-- estabilidad,
-- reducción de influencia de extremos.
-
-#### Feature engineering
-Este tema es central en TP. Consiste en construir nuevas variables que expresen mejor el problema.
-
-Ejemplos conceptuales:
-
-- extraer día de la semana desde una fecha,
-- construir duración desde hora de inicio y fin,
-- resumir texto con representación vectorial,
-- combinar variables existentes.
-
-Acá la materia premia criterio. Una buena feature puede valer más que probar diez modelos sin sentido.
-
-**Cómo podría aparecer en examen:** elegir una técnica usada en TP y describir cómo se implementó y por qué.
-
-**Error típico a evitar:** convertir el preprocesamiento en una lista de herramientas desconectadas del dominio.
-
----
-
-### 4.4 Evaluar modelos: cómo no mentirse con la performance
-
-Esta sección es probablemente la más importante para entender la materia en serio. Porque muchas veces entrenar un modelo es relativamente fácil; lo difícil es saber si realmente sirve.
-
-#### Entrenamiento y test: la idea básica de generalización
-Un modelo aprende sobre un conjunto de entrenamiento. Pero si lo evaluamos solo ahí, estamos haciéndole preguntas sobre datos que ya vio.
-
-Por eso se separa un conjunto de test. El objetivo es estimar cómo rendirá frente a casos nuevos.
-
-La intuición profunda es esta: **el valor de un modelo no está en recordar el pasado, sino en responder bien en datos no vistos**.
-
-#### Validación cruzada
-Cuando quiero ajustar hiperparámetros o tener una evaluación más robusta, uso cross validation.
-
-En lugar de depender de una única partición, entreno y valido varias veces en distintos folds. Eso reduce la arbitrariedad de un split accidentalmente favorable o desfavorable.
-
-En TP esto aparece como parte del proceso serio de optimización, no como detalle técnico menor.
-
-#### Matriz de confusión: la radiografía de la clasificación
-La matriz de confusión organiza las predicciones en:
-
-- verdaderos positivos,
-- falsos positivos,
-- verdaderos negativos,
-- falsos negativos.
-
-Su valor no está solo en permitir fórmulas, sino en mostrar **qué tipo de error está cometiendo el modelo**.
-
-Eso es crucial porque no todos los errores cuestan lo mismo.
-
-#### Accuracy: útil, pero no siempre suficiente
-Accuracy es la proporción total de aciertos.
-
-Es intuitiva y cómoda, pero puede ser engañosa si las clases están desbalanceadas. Un modelo puede acertar mucho simplemente prediciendo siempre la clase mayoritaria.
-
-#### Precision y recall: dos lentes distintos sobre el error
-Estos dos conceptos aparecen reiteradamente porque son fáciles de confundir y muy importantes.
-
-##### Precision
-Responde: **de todo lo que el modelo marcó como positivo, cuánto era realmente positivo**.
-
-Sirve cuando el costo de “alarmar de más” es alto.
-
-Ejemplo intuitivo: si un filtro marca muchos correos normales como spam, la precisión es baja.
-
-##### Recall
-Responde: **de todos los positivos reales, cuántos detectó el modelo**.
-
-Sirve cuando el costo de “dejar pasar un positivo real” es alto.
-
-Ejemplo intuitivo: en fraude o enfermedad, perder casos reales puede ser muy grave.
-
-##### F1
-Es una forma de equilibrar precision y recall cuando ambas importan.
-
-No es magia: simplemente resume un compromiso entre dos necesidades que a menudo compiten.
-
-#### Métricas de regresión
-En regresión no tiene sentido usar precision o recall porque no estamos etiquetando positivos y negativos.
-
-Acá lo natural es medir error.
-
-- **MAE**: error absoluto medio. Fácil de interpretar.
-- **MSE**: castiga más los errores grandes porque los eleva al cuadrado.
-- **RMSE**: vuelve a la escala original tras haber cuadratizado.
-
-La intuición importante es que no todas penalizan igual los errores extremos.
-
-#### Overfitting y underfitting
-Estos conceptos son centrales porque conectan modelo, evaluación y complejidad.
-
-##### Overfitting
-El modelo aprende demasiado el entrenamiento, incluso ruido o peculiaridades accidentales.
-
-Señales típicas:
-
-- entrenamiento muy bueno,
-- test bastante peor,
-- alta sensibilidad,
-- demasiada complejidad relativa al problema.
-
-Cómo mitigarlo:
-
-- regularización,
-- poda,
-- validación cruzada,
-- reducción de complejidad,
-- early stopping,
-- más datos en algunos casos,
-- ensambles bien regularizados.
-
-##### Underfitting
-El modelo es demasiado pobre para capturar la estructura relevante.
-
-Señales típicas:
-
-- errores altos tanto en entrenamiento como en validación,
-- insuficiente capacidad expresiva,
-- exceso de simplificación.
-
-Cómo mitigarlo:
-
-- modelos más ricos,
-- mejores features,
-- menos regularización,
-- mejor representación del problema.
-
-#### Bias y varianza: la idea detrás de todo
-Conviene entenderlo intuitivamente antes que recitarlo.
-
-- **Bias alto**: el modelo es demasiado rígido, simplifica demasiado.
-- **Varianza alta**: el modelo reacciona demasiado a detalles específicos del entrenamiento.
-
-La tensión entre ambos explica por qué encontrar un buen modelo no es solo “hacerlo más potente”.
-
-**Cómo podría aparecer en examen:** definición comparativa, detección por comportamiento train/test, propuesta de mitigación.
-
-**Error típico a evitar:** describir overfitting y underfitting sin hablar de generalización ni complejidad.
-
----
-
-### 4.5 Modelos supervisados: qué idea aporta cada familia
-
-La materia menciona varios modelos, pero no para que el alumno memorice listas. Lo importante es entender la intuición de cada uno.
-
-#### Regresión lineal
-La idea es modelar una relación aproximadamente lineal entre features y target.
-
-Su valor pedagógico es enorme porque obliga a pensar en interpretabilidad, coeficientes y efecto de las variables.
-
-No siempre será el mejor modelo predictivo, pero sí suele ser un buen punto de comparación.
-
-#### Regresión logística
-Aunque tenga “regresión” en el nombre, se usa para clasificación binaria.
-
-La intuición es que estima una probabilidad de pertenecer a una clase, y luego esa probabilidad puede transformarse en decisión.
-
-Es especialmente útil para entender clasificación probabilística y fronteras relativamente simples.
-
-#### KNN y SVM
-En los materiales aparecen más como parte del repertorio conceptual que como centro absoluto del examen.
-
-- KNN clasifica mirando vecinos cercanos.
-- SVM busca una frontera separadora con buen margen.
-
-Sirven para reforzar la idea de que distintos algoritmos representan el problema de maneras distintas.
-
-#### XGBoost
-Es importante no tratarlo como una caja negra de moda. Conceptualmente, importa porque muestra el poder de boosting bien regularizado.
-
-Suele ofrecer muy buena performance, pero a costa de mayor complejidad y menor transparencia que un árbol simple.
-
-#### Criterio general de elección
-Cuando te preguntan qué modelo elegirías, conviene pensar en varios ejes:
-
-- tipo de problema,
-- tamaño y naturaleza del dataset,
-- tipo de variables,
-- necesidad de interpretabilidad,
-- sensibilidad a escala,
-- tolerancia a overfitting,
-- costo computacional,
-- métrica objetivo.
-
-**Cómo podría aparecer en examen:** justificar un modelo a elección o comparar modelos por trade-offs.
-
-**Error típico a evitar:** responder con “uso XGBoost porque suele dar mejor resultado”. En esta materia se espera criterio, no slogans.
-
----
-
-### 4.6 Árboles de decisión: aprender a decidir haciendo preguntas sucesivas
-
-Este es uno de los bloques más importantes de toda la materia y probablemente el más rentable para estudiar bien.
-
-#### La intuición del árbol
-Un árbol de decisión clasifica o predice partiendo el espacio de datos mediante preguntas sucesivas.
-
-Por ejemplo:
-
-- ¿la humedad es mayor que cierto umbral?
-- ¿la presión está por debajo de otro umbral?
-- ¿la categoría climática es tal o cual?
-
-Cada pregunta divide los datos y trata de dejar juntos casos cada vez más parecidos respecto del target.
-
-La gran virtud del árbol es que su razonamiento se puede contar casi como reglas “si-entonces”. Eso lo vuelve muy interpretable.
-
-#### Qué significa una buena división
-No cualquier corte sirve. Una buena división es la que deja nodos más “puros”, es decir, grupos con mayor homogeneidad respecto de la clase.
-
-#### Entropía y ganancia de información
-La entropía mide desorden o mezcla de clases. Si un nodo tiene observaciones muy mezcladas, la entropía es alta. Si casi todas son de la misma clase, la entropía es baja.
-
-La **ganancia de información** evalúa cuánto reduce ese desorden una partición.
-
-Intuición:
-
-- antes de preguntar, el nodo está confuso;
-- después de preguntar, idealmente queda más ordenado;
-- la ganancia mide cuánto ayudó esa pregunta.
-
-#### Impureza de Gini
-La lógica es parecida: medir cuán mezclado está un nodo.
-
-Un nodo puro contiene una sola clase. Un nodo impuro mezcla varias.
-
-En examen conviene poder explicar esto con palabras sencillas, no solo con la fórmula.
-
-#### Atributos numéricos en árboles
-Un punto bastante preguntado es cómo maneja el árbol variables continuas.
-
-La intuición es simple: el algoritmo busca un umbral.
-
-Por ejemplo:
-
-- temperatura < 18.5,
-- humedad > 70,
-- precio < cierto valor.
-
-Es decir, convierte una variable continua en una decisión binaria local porque eso permite particionar el espacio.
-
-#### Poda
-Un árbol muy grande puede capturar detalles excesivamente particulares del conjunto de entrenamiento. Ahí aparece la poda.
-
-La poda elimina ramas que aportan complejidad pero no mejoran realmente la generalización.
-
-La idea profunda es elegantísima: **no todo detalle aprendido vale la pena conservarlo**.
-
-#### Limitaciones del árbol simple
-Aunque es interpretativo y útil, puede ser inestable. Pequeños cambios en los datos pueden producir árboles distintos. Además, si se lo deja crecer mucho, sobreajusta con facilidad.
-
-Esto prepara el terreno para Random Forest.
-
-**Cómo podría aparecer en examen:** entropía, Gini, poda, reglas iniciales del árbol, manejo de numéricos.
-
-**Error típico a evitar:** definir Gini o entropía sin explicar que buscan particiones más puras.
-
----
-
-### 4.7 Random Forest y ensambles: por qué combinar modelos puede funcionar mejor
-
-#### La intuición general de un ensamble
-Un ensamble parte de una idea muy humana: si varias decisiones imperfectas pero informadas se combinan bien, el resultado puede ser más estable y preciso que cualquiera de ellas por separado.
-
-No siempre mejora todo, pero muchas veces reduce debilidades individuales.
-
-#### Bagging
-Bagging significa entrenar varios modelos sobre muestras bootstrap y luego combinarlos.
-
-La intuición más útil es esta: en vez de confiar en un solo árbol, construyo muchos árboles parecidos pero no idénticos, y después los promedio o los hago votar.
-
-Eso reduce varianza. Es decir, el sistema total se vuelve menos sensible a accidentes del conjunto de entrenamiento.
-
-#### Random Forest
-Random Forest es el ejemplo más emblemático de bagging en la materia.
-
-Consiste en:
-
-- muchos árboles,
-- entrenados sobre muestras bootstrap,
-- con selección aleatoria de features en cada split.
-
-¿Por qué también se aleatorizan las features? Porque si siempre se dejara elegir entre todas, muchos árboles terminarían pareciéndose demasiado. La aleatoriedad fuerza diversidad útil.
-
-Ventajas:
-
-- mejor generalización que un árbol aislado en muchos casos,
-- menos varianza,
-- posibilidad de medir importancia de variables,
-- buen rendimiento práctico.
-
-Costo:
-
-- menor interpretabilidad global que un árbol único.
-
-#### Boosting
-Si bagging trabaja más bien “en paralelo”, boosting trabaja “en secuencia”.
-
-La idea es que cada nuevo modelo se concentre en corregir errores de los anteriores.
-
-Eso hace que el ensamble vaya refinando progresivamente su capacidad predictiva.
-
-#### XGBoost
-XGBoost es una realización muy potente de boosting basado en gradiente.
-
-Conceptualmente importa porque muestra un ensamble que no solo combina modelos, sino que **aprende sobre los residuos del ensamble previo**.
-
-Además incorpora regularización, learning rate, pruning y otros mecanismos para controlar complejidad.
-
-#### Stacking y voting
-Ambos aparecen como ensambles heterogéneos o híbridos en varios materiales.
-
-- **Voting**: varios modelos producen predicciones y se combinan por voto o promedio.
-- **Stacking**: las salidas de varios modelos base alimentan un metamodelo que aprende cómo combinarlas.
-
-La diferencia importante es que stacking aprende una combinación; voting aplica una regla fija.
-
-#### Homogéneos vs híbridos
-- **Homogéneo**: todos los modelos son del mismo tipo, como en Random Forest.
-- **Híbrido**: combina algoritmos distintos, como árbol + SVM + red.
-
-El híbrido puede capturar perspectivas complementarias, pero también complica implementación e interpretación.
-
-**Cómo podría aparecer en examen:** bagging vs boosting, RF vs XGBoost, stacking vs voting, homogéneo vs híbrido.
-
-**Error típico a evitar:** decir que bagging y boosting “hacen varios modelos y listo”. La diferencia está en cómo los construyen y qué tipo de error buscan reducir.
-
----
-
-### 4.8 Clustering: agrupar sin que nadie nos diga la respuesta correcta
-
-El clustering tiene un atractivo especial porque intenta descubrir estructura sin etiquetas previas.
-
-#### La idea de fondo
-En clasificación, el docente ya te dice cuáles son las clases correctas del pasado. En clustering, nadie te da esa respuesta. El desafío es detectar si los datos parecen formar grupos naturalmente.
-
-#### K-Means
-K-Means busca particionar los datos en K grupos, asignando cada observación al centroide más cercano y reajustando centroides iterativamente.
-
-La intuición simple es imaginar varios “centros” que se van moviendo hasta quedar en posiciones representativas de grupos de puntos.
-
-#### Un detalle importante: K no cae del cielo
-Uno de los problemas más importantes de K-Means es elegir cuántos grupos usar.
-
-Ahí entran criterios como:
-
-- tendencia al clustering,
-- elbow method,
-- silhouette,
-- interpretación sustantiva.
-
-#### Hopkins
-La prueba de Hopkins ayuda a evaluar si el dataset realmente parece tener estructura de clusters o si está más cerca de una distribución aleatoria.
-
-Es importante porque a veces uno quiere clusterizar por obligación metodológica, pero los datos no sostienen esa idea.
-
-#### Elbow method
-La lógica del elbow es observar cómo cambia la variabilidad intra-cluster al aumentar K.
-
-Al principio agregar clusters mejora mucho. Luego llega un punto donde la mejora marginal cae. Ese “codo” sugiere una cantidad razonable.
-
-No es una verdad automática; es una guía.
-
-#### Silhouette
-Silhouette intenta medir qué tan bien queda cada punto dentro de su cluster en comparación con clusters vecinos.
-
-Intuición:
-
-- bueno si un punto está cerca de los suyos y lejos de los otros;
-- malo si queda ambiguo entre grupos.
-
-#### Interpretación de clusters
-Esta es una parte especialmente importante en TP. Un cluster no vale por existir matemáticamente; vale si puede interpretarse.
-
-Por eso hay que preguntarse:
-
-- ¿qué rasgos dominan cada grupo?
-- ¿cómo se diferencia de los demás?
-- ¿tiene sentido en el dominio?
-
-**Cómo podría aparecer en examen:** cantidad de clusters elegida, criterio usado, interpretación de grupos.
-
-**Error típico a evitar:** pensar que clustering descubre categorías “reales” sin intervención interpretativa.
-
----
-
-### 4.9 Reducción de dimensionalidad: reducir sin perder lo importante
-
-Cuando hay muchas variables, pueden aparecer varios problemas a la vez:
-
-- ruido,
-- colinealidad,
-- dificultad de visualización,
-- complejidad computacional,
-- mayor riesgo de sobreajuste.
-
-La reducción de dimensionalidad busca aliviar eso.
-
-#### PCA: la lógica de la varianza explicada
-PCA construye nuevas variables, llamadas componentes principales, que resumen la mayor cantidad posible de varianza del conjunto.
-
-La intuición útil es imaginar que los datos viven en una nube inclinada en el espacio. PCA intenta encontrar las direcciones más informativas de esa nube.
-
-No conserva necesariamente el significado original de cada columna, pero gana capacidad de síntesis.
-
-#### Scree plot
-Sirve para decidir cuántos componentes conservar.
-
-La idea es mirar cuánta varianza explica cada componente y detectar un punto a partir del cual agregar más componentes aporta poco. Ese punto suele leerse como “codo”.
-
-#### t-SNE
-t-SNE es muy usado para visualización porque tiende a preservar vecindades locales y mostrar clusters de forma clara.
-
-Por eso en los materiales aparece asociado a la idea de conservar clusters.
-
-La intuición importante es que no está pensado como resumen lineal de varianza, sino como proyección útil para ver estructura local.
-
-#### ISOMAP
-ISOMAP aparece cuando sospechamos que los datos viven sobre una variedad no lineal dentro del espacio de alta dimensión.
-
-La intuición clásica es esta: si los datos están sobre una superficie curva, la distancia euclídea directa puede engañar. ISOMAP intenta respetar mejor la geometría intrínseca usando distancias geodésicas aproximadas.
-
-#### No son sinónimos
-Este punto es crucial.
-
-- Si quiero varianza explicada y una técnica clásica, pienso en PCA.
-- Si quiero visualizar clusters, t-SNE suele ser más natural.
-- Si sospecho estructura de variedad, ISOMAP tiene mejor justificación conceptual.
-
-**Cómo podría aparecer en examen:** para qué sirve reducir dimensión, qué elegir según objetivo, uso del scree plot.
-
-**Error típico a evitar:** decir “todas reducen dimensión así que da lo mismo cuál usar”.
-
----
-
-### 4.10 Redes neuronales: de la limitación lineal al aprendizaje en capas
-
-En muchos cursos las redes neuronales se explican demasiado rápido y quedan como una colección de palabras impresionantes. Acá conviene construir la intuición con calma.
-
-#### Perceptrón simple
-El perceptrón simple es una unidad que combina entradas con pesos, suma, aplica una función y decide una salida.
-
-Su importancia histórica y conceptual está en que muestra una idea básica: **aprender significa ajustar pesos para mejorar decisiones**.
-
-#### Su gran limitación
-El perceptrón simple solo puede resolver problemas linealmente separables.
-
-La forma más clara de entender esto es imaginar puntos de dos clases en un plano. Si una recta puede separarlos, el perceptrón sirve. Si no, como en XOR, no alcanza.
-
-Esta limitación es la puerta de entrada natural al perceptrón multicapa.
-
-#### Perceptrón multicapa (MLP)
-Al agregar capas ocultas y no linealidades, la red deja de estar limitada a fronteras simples.
-
-La intuición es que cada capa transforma la representación de los datos. Lo que al principio parecía difícil de separar puede volverse separable después de varias transformaciones.
-
-#### Backpropagation
-Este término suele sonar más misterioso de lo que realmente es. Conceptualmente, backpropagation es el mecanismo para calcular cómo debe cambiar cada peso si quiero reducir el error final.
-
-Usa la regla de la cadena porque el efecto de un peso temprano en la red se propaga a través de muchas operaciones intermedias.
-
-Intuición:
-
-1. la red produce una salida,
-2. se compara con la respuesta correcta,
-3. se calcula el error,
-4. ese error “vuelve hacia atrás” informando cuánto contribuyó cada peso,
-5. los pesos se corrigen.
-
-#### Optimizadores
-Un optimizador es la regla concreta con la que se actualizan los pesos usando esos gradientes.
-
-Ejemplos frecuentes:
-
-- SGD,
-- RMSprop,
-- Adam.
-
-No hace falta memorizar demasiados detalles, pero sí entender que todos buscan una actualización eficiente y estable de parámetros.
-
-#### Regularización en redes
-Como son modelos potentes, las redes pueden sobreajustar con facilidad.
-
-Por eso aparecen técnicas como:
-
-- regularización L1/L2,
-- dropout,
-- early stopping.
-
-##### Early stopping
-Es conceptualmente muy elegante: se deja de entrenar cuando el rendimiento de validación empieza a empeorar, aunque el entrenamiento siga mejorando. Es una forma de decirle a la red: “hasta acá aprendiste estructura útil; si seguís, empezás a memorizar ruido”.
-
-#### Funciones de activación
-En parciales aparecen ejemplos como ReLU y sigmoidea.
-
-Lo importante no es dibujarlas de memoria solamente, sino entender que introducen no linealidad. Sin esa no linealidad, apilar capas lineales no aportaría verdadera riqueza expresiva.
-
-#### SOM
-Las Self-Organizing Maps aparecen como redes no supervisadas útiles para visualización y clustering en dos dimensiones.
-
-No suelen ser el núcleo más frecuente del parcial, pero conviene saber para qué sirven y ubicarlas conceptualmente.
-
-**Cómo podría aparecer en examen:** limitación del perceptrón simple, backpropagation, optimizadores, técnicas anti-overfitting, SOM.
-
-**Error típico a evitar:** describir backpropagation como “el algoritmo que entrena redes” sin explicar que calcula gradientes de la pérdida respecto de los pesos.
-
----
-
-### 4.11 Texto como dato: NLP aplicado en la materia
-
-Trabajar con texto obliga a enfrentar un problema básico pero decisivo: el lenguaje natural no entra directamente a la mayoría de los algoritmos clásicos.
-
-#### El problema de representación
-Si yo tengo reseñas de películas o user stories, para un algoritmo esas cadenas no tienen significado operativo inmediato. Antes hay que transformarlas en números.
-
-#### Bag of Words
-La idea básica de bolsa de palabras es representar cada documento por el conteo de palabras de un vocabulario.
-
-La intuición es simple: dejo de mirar el texto como secuencia “humana” y lo paso a ver como presencia y frecuencia de términos.
-
-Es un modelo sencillo, pero muy útil pedagógicamente porque muestra cómo un objeto complejo puede volverse vector.
-
-#### TF-IDF
-TF-IDF mejora la representación al ponderar palabras según su frecuencia en el documento y su rareza global en el corpus.
-
-La intuición es que no todas las palabras informan igual. Términos muy comunes en todos los documentos aportan poco para discriminar.
-
-#### Bayes Naïve / Multinomial
-Estos modelos aparecen en materiales de sentimiento y son importantes porque combinan simplicidad, velocidad y buen rendimiento en muchos problemas de texto.
-
-No hace falta pensar que “entienden semántica”. Funcionan bien porque aprovechan regularidades estadísticas de términos y clases.
-
-#### Lexicones de sentimiento
-Con recursos como SentiWordNet se puede puntuar texto usando diccionarios de polaridad.
-
-Es una aproximación distinta de los modelos entrenados: en vez de aprender solo desde ejemplos etiquetados, usa conocimiento léxico preexistente.
-
-#### Story points como problema integrador
-El TP2 es muy revelador sobre el espíritu de la materia.
-
-No se pide solo predecir texto con un modelo único. Se pide:
-
-- vectorizar,
-- probar varios modelos,
-- buscar hiperparámetros,
-- comparar,
-- ensamblar,
-- justificar,
-- evaluar con RMSE,
-- defender la arquitectura de red elegida.
-
-Es decir: la materia espera que el alumno sepa construir un pipeline real, no solo aplicar una receta mínima.
-
-**Cómo podría aparecer en examen:** bag of words, necesidad de vectorizar, Bayes sobre texto, RMSE en story points.
-
-**Error típico a evitar:** hablar del texto como si el modelo trabajara sobre significado humano directo sin paso de representación.
-
----
-
-### 4.12 Estrategia inteligente para estudiar y rendir
-
-Después de reconstruir el mapa completo, la mejor estrategia de estudio no es memorizar una lista inmensa de definiciones. Lo más eficiente es dominar un conjunto de ideas madre y usarlas para colgar el resto.
-
-#### Idea madre 1 — Todo empieza por formular bien el problema
-Si reconocés bien si es clasificación, regresión o clustering, ya estás ordenando buena parte del examen.
-
-#### Idea madre 2 — No hay modelado serio sin entender los datos
-EDA, faltantes, outliers y features no son preámbulo burocrático. Son el corazón del trabajo aplicado.
-
-#### Idea madre 3 — Evaluar bien importa más que entusiasmarse con un algoritmo
-Si una respuesta no menciona generalización, métrica apropiada o costo del error, suele quedar floja.
-
-#### Idea madre 4 — La complejidad es una herramienta, no una garantía
-Árbol simple, Random Forest, XGBoost o red neuronal no forman una escala donde el último “gana” siempre. Cada uno resuelve algo y paga algo.
-
-#### Idea madre 5 — En examen se premia mucho la justificación
-Cuando dudes entre dos respuestas posibles, suele ser mejor la que:
-
-- da criterio,
-- contextualiza,
-- compara,
-- elige con fundamento.
-
-#### Cómo conviene practicar
-1. Poder explicar con tus palabras cada tríada clásica:
-   - clasificación / regresión / clustering;
-   - precision / recall / F1;
-   - overfitting / underfitting / bias-varianza;
-   - bagging / boosting;
-   - PCA / t-SNE / ISOMAP.
-2. Resolver matrices de confusión sin mirar apuntes.
-3. Practicar respuestas de “qué usarías y por qué”.
-4. Poder contar decisiones concretas de los TP como si fueras el autor del pipeline.
-5. Estudiar árboles y ensambles con especial prioridad.
-
----
-
-## 5. REVISIÓN CRÍTICA FINAL
-
-### 5.1 Debilidades detectadas al reconstruir la materia
-
-- Los materiales disponibles no desarrollan todos los temas con la misma profundidad.
-- Algunas resoluciones de parcial son deliberadamente breves y sirven más para identificar foco evaluativo que para construir teoría completa.
-- La guía práctica mezcla herramientas, ejercicios y contextos de distinta antigüedad, por lo que no conviene usarla como único organizador pedagógico.
-
-### 5.2 Mejoras realizadas en esta reconstrucción
-
-- Reorganicé la materia por problemas intelectuales y no por orden de archivo.
-- Puse primero la intuición y después la formalización.
-- Priorizé lo más preguntado en examen sin perder conexión con los TP.
-- Hice explícitas las dependencias entre conceptos para que el estudio tenga una secuencia lógica.
-- Marqué errores típicos para transformar el resumen en una guía de comprensión y no solo de lectura.
-
-### 5.3 Decisiones editoriales importantes
-
-- Priorizé lo que aparece repetidamente en parciales, recuperatorios y trabajos prácticos.
-- Traté redes y NLP con profundidad suficiente para comprensión y examen, pero sin darles el mismo peso que métricas, evaluación, preprocesamiento y árboles, porque los materiales no sostienen esa simetría.
-- Evité organizar el texto como glosario, porque eso habría empeorado la comprensión global.
-- Elegí un tono de mini-clases enlazadas para que cada bloque pueda estudiarse de forma relativamente autónoma.
-
-### 5.4 Criterio adoptado frente a ambigüedades
-
-Cuando los materiales fueron desparejos o resumidos, prioricé:
-
-1. lo que aparece reiterado en los exámenes,
-2. lo que los TP obligan a justificar en la práctica,
-3. y recién después los detalles accesorios de herramientas o implementaciones.
-
-Ese criterio busca alinearse con el objetivo real del curso: entender, aplicar y defender decisiones de ciencia de datos con fundamento.
+Esta obra buscó construir ese recorrido completo: desde la formulación del problema hasta la evaluación rigurosa, desde los modelos clásicos hasta enfoques más complejos, desde la técnica matemática hasta la responsabilidad interpretativa. Si el lector puede ahora plantear problemas con precisión, diseñar pipelines sin leakage, comparar modelos con criterio, interpretar métricas en contexto y reconocer límites de inferencia, entonces alcanzó el objetivo central de la materia: un dominio profundo, transferible y profesional de la ciencia de datos.
+<<<<<<< ours
+<<<<<<< ours
+>>>>>>> theirs
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
