@@ -1,1303 +1,1279 @@
-# Tratado de Ciencia de Datos: fundamentos, modelado, evaluación y criterio profesional
+# Tratado de Ciencia de Datos: fundamentos para entender desde la base
 
 ## Prólogo
 
-La ciencia de datos suele aprenderse mal por dos razones opuestas. A veces se la reduce a un catálogo de algoritmos, como si dominar la materia consistiera en memorizar cuándo usar regresión lineal, Random Forest o redes neuronales. Otras veces se la vuelve una práctica puramente instrumental: limpiar columnas, correr un pipeline, mirar una métrica y pasar al siguiente caso. En ambos extremos se pierde lo esencial. La disciplina no empieza en el algoritmo ni termina en el score. Empieza en una pregunta sobre un fenómeno real, atraviesa una serie de decisiones de representación y culmina en una inferencia que alguien utilizará para actuar bajo incertidumbre.
+La ciencia de datos se aprende mal cuando se la presenta como un catálogo de algoritmos. En ese formato el estudiante acumula nombres, recuerda qué botón apretar en una librería y quizá hasta obtiene métricas decorosas, pero no alcanza a ver qué problema resuelve cada idea ni por qué una decisión metodológica tiene sentido y otra no. Entonces puede repetir procedimientos, pero no reconstruir razonamientos.
 
-Esa secuencia exige mucho más que familiaridad con librerías. Entre el fenómeno y el dato hay instrumentos de medición, definiciones operativas, procesos administrativos, sesgos históricos y recortes temporales. Entre el dato y el modelo hay decisiones de granularidad, de variables, de imputación, de transformación y de criterio de error. Entre el modelo y la decisión final hay umbrales, costos, restricciones operativas, límites de interpretación y riesgos éticos. Quien no vea esa arquitectura confundirá facilidad de uso con comprensión.
+Conviene mirar la disciplina como una cadena de traducciones. En el mundo ocurre un fenómeno; ese fenómeno deja rastros; esos rastros se organizan en datos; sobre esos datos construimos una representación; sobre esa representación entrenamos un modelo; y con la salida del modelo alguien toma una decisión. La continuidad entre esos eslabones importa más que cualquier algoritmo aislado. Cuando esa continuidad se rompe, el proyecto puede seguir luciendo técnico y sofisticado, pero ya empezó a fallar en lo esencial.
 
-Este tratado parte de una convicción pedagógica precisa: un tema difícil no debe simplificarse hasta volverse trivial, sino reconstruirse hasta volverse inteligible. Por eso cada capítulo avanza del problema a la intuición, de la intuición a la formulación, y de la formulación a la interpretación. La matemática aparece cuando hace falta, no como ornamento. Cada fórmula relevante va acompañada por una lectura conceptual, porque la notación sin comprensión produce una ilusión de rigor, y la intuición sin formalización produce vaguedad.
+Este tratado está escrito con una intención deliberada: no ofrecer una colección de apuntes, sino una explicación continua que permita entender desde la raíz por qué existe cada concepto. La matemática aparecerá cuando haga falta, no como adorno ni como ritual, sino como una forma más precisa de decir algo que primero debe resultar comprensible en lenguaje humano. Un modelo de riesgo, una matriz de diseño, una curva ROC o una componente principal no son objetos para memorizar; son respuestas a problemas muy concretos que aparecen cuando intentamos razonar bien con datos imperfectos.
 
-La meta no es solo aprobar una materia. Es adquirir una forma de pensar. Quien estudie bien estas páginas debería poder tomar un problema nuevo, traducirlo a un lenguaje modelable, leer críticamente los datos disponibles, elegir una estrategia de representación y validación coherente, interpretar los resultados con honestidad y reconocer con claridad qué sabe, qué no sabe y qué no puede afirmar. Ese es, en sentido fuerte, el oficio de la ciencia de datos.
+La meta, por eso, no es solo aprobar una materia ni sumar herramientas al currículum. La meta es algo más sobrio y más valioso: que, frente a un problema nuevo, el lector pueda volver al punto de partida, preguntarse qué quiere entender o anticipar, qué rastro observable tiene de ese fenómeno, qué representación respeta mejor el sentido del problema, cómo debería evaluarse el error y qué puede afirmarse con honestidad después de modelar. Si eso ocurre, entonces la ciencia de datos deja de ser una secuencia de recetas y empieza a convertirse en una forma rigurosa de pensar.
 
 ## Parte I. Fundamentos: qué problema resuelve realmente la ciencia de datos
 
-Antes de hablar de modelos conviene fijar el terreno. La ciencia de datos no trabaja directamente sobre la realidad, sino sobre rastros parciales de esa realidad. Por eso esta primera parte no se ocupa de algoritmos todavía, sino del lenguaje básico de la disciplina: qué es un dato, qué es una variable, qué significa formular bien un problema y por qué una buena evaluación empieza mucho antes del entrenamiento.
+Antes de hablar de modelos conviene fijar el terreno. La ciencia de datos no trabaja sobre la realidad en estado puro, sino sobre observaciones parciales, ruidosas y muchas veces sesgadas de esa realidad. Por eso su pregunta más profunda no es qué algoritmo usar, sino cómo traducir con cuidado un fenómeno del mundo a un problema que pueda representarse, aprenderse y evaluarse sin engañarnos sobre lo que realmente sabemos.
 
 ## Capítulo 1. La ciencia de datos como disciplina de representación y decisión
 
 ### 1.1 Qué es y qué no es la ciencia de datos
 
-La definición más repetida dice que la ciencia de datos extrae conocimiento de los datos. La frase es correcta, pero demasiado pobre. Sugiere que el conocimiento ya estuviera intacto dentro del dataset y que bastara aplicar una técnica para revelarlo. En realidad, los datos no hablan por sí solos. Son registros producidos por sensores, formularios, sistemas transaccionales, decisiones humanas, convenciones administrativas y contextos históricos. Trabajar con datos no es mirar una realidad transparente, sino interpretar evidencias parciales, ruidosas y muchas veces sesgadas.
+La necesidad de la ciencia de datos aparece cada vez que alguien debe decidir en condiciones de incertidumbre. Una empresa quisiera anticipar qué clientes están por irse. Un hospital quisiera detectar pacientes con mayor riesgo. Un banco quisiera estimar la probabilidad de mora antes de otorgar un crédito. En todos esos casos el fenómeno que importa existe en el mundo, pero no se presenta ante nosotros de manera completa ni transparente. Lo que tenemos son huellas: consumos, reclamos, resultados clínicos, transacciones, textos, mediciones, registros administrativos.
 
-Una definición más rigurosa diría que la ciencia de datos estudia cómo transformar observaciones disponibles en descripciones, predicciones, segmentaciones o señales útiles para decidir. Esa transformación combina estadística, modelado, computación, conocimiento del dominio y criterio metodológico. Ninguno de esos elementos alcanza por separado. Un muy buen algoritmo sobre variables mal definidas produce conclusiones pobres. Un dataset enorme con una pregunta mal formulada conduce a errores bien maquillados.
+La disciplina nace precisamente en esa distancia entre el fenómeno y su rastro observable. Su tarea no consiste en extraer una verdad pura escondida dentro de una tabla, sino en construir representaciones suficientemente buenas como para describir, segmentar o predecir con menos error del que tendríamos sin ellas. Vista así, la ciencia de datos es una práctica de modelado bajo información incompleta. Trabaja con evidencia indirecta, con señales mezcladas con ruido y con decisiones que nunca desaparecen detrás de la técnica, porque al final siempre habrá alguien que deberá actuar en función de la salida del sistema.
 
-También conviene decir qué no es la disciplina. No es sinónimo de inteligencia artificial, aunque se superponga con ella. No es solo estadística computacional, aunque la estadística sea uno de sus cimientos. No es simplemente programar modelos. Y, sobre todo, no es un procedimiento automático que convierta datos en verdad. Su objeto real es mucho más modesto y mucho más serio: construir representaciones suficientemente buenas de un fenómeno para razonar y decidir mejor que antes.
+Esa mirada también aclara qué no es. No es sinónimo de inteligencia artificial, aunque a veces se cruce con ella. No es simplemente estadística con computadoras, aunque la estadística sea uno de sus lenguajes más importantes. No es solo programar pipelines, aunque sin implementación rigurosa las ideas no se sostienen. Y, sobre todo, no es una máquina automática que convierte datos en certeza. Su objeto real es más modesto y más serio: razonar con rastros imperfectos del mundo para equivocarse menos al decidir.
 
 ### 1.2 Fenómeno, dato, variable y decisión
 
-Buena parte de los errores iniciales nace de mezclar niveles que conviene mantener separados. El primero es el **fenómeno**: abandono de clientes, mora, fraude, propagación de una enfermedad, sentimiento en textos, consumo eléctrico o desempeño académico. El segundo es el **dato**: la forma concreta en que ese fenómeno queda registrado. El tercero es la **variable**: la propiedad que medimos o construimos sobre cada unidad observada. El cuarto es la **decisión**: aquello que una persona o una organización hará a partir del análisis.
+Uno de los primeros aprendizajes importantes consiste en no mezclar planos. El fenómeno es aquello que queremos entender o anticipar: abandono, fraude, demanda, mora, riesgo, satisfacción, tiempo de resolución, intención de compra. El dato es el registro concreto que tenemos a mano: un consumo, una llamada, un monto, una fecha, una respuesta de encuesta, una frase escrita por un usuario. La variable es una propiedad observada o construida sobre cada unidad. La decisión es la acción que alguien tomará a partir de esa información: aprobar, intervenir, priorizar, ofrecer, alertar, recomendar.
 
-La distinción no es filosófica en sentido decorativo. Tiene consecuencias técnicas inmediatas. Si el fenómeno es la morosidad futura, pero los datos disponibles describen mal la solvencia presente, el problema no se arregla con un modelo más sofisticado. Si la decisión exige detectar casi todos los casos positivos, pero la métrica elegida premia solo la accuracy, tampoco habrá coherencia metodológica. Entre fenómeno, dato, variable y decisión debe conservarse una continuidad de sentido. Cuando esa cadena se rompe, el proyecto entra en contradicción mucho antes del entrenamiento.
+Una analogía sencilla ayuda a fijar la diferencia. Si el fenómeno es la fiebre de un paciente, el termómetro no es la fiebre: es un instrumento que la registra con cierta precisión, con cierto error y dentro de ciertas condiciones. Del mismo modo, un dataset no es el fenómeno. Es el conjunto de marcas que distintos instrumentos, procesos y reglas institucionales dejaron sobre ese fenómeno. Cuando se olvida esto, se empieza a tratar a la tabla como si fuera la realidad misma, y con ese gesto se pierden preguntas decisivas sobre medición, sesgo y significado.
+
+Pensemos en un problema de churn. El abandono real del cliente ocurre en el mundo. Lo que la organización observa son trazas como frecuencia de uso, reclamos, demoras de pago o historial de interacción. A partir de esas trazas se construyen variables, por ejemplo los días desde el último uso o la caída de actividad en las últimas cuatro semanas. Con la salida del modelo no se obtiene todavía una verdad metafísica sobre la voluntad del cliente, sino una ayuda para decidir si conviene activar una campaña de retención. Si esos niveles se confunden, el problema entero queda mal planteado antes de entrenar un solo modelo.
 
 ### 1.3 Dataset, población, muestra y unidad de análisis
 
-Un dataset no es meramente una tabla. Es una muestra finita extraída de una población o, al menos, de un proceso generador de datos que imaginamos más amplio que lo observado. Cuando trabajamos con un dataset tabular solemos representarlo como una matriz
+Una base de datos suele verse como una tabla, pero conceptualmente es algo más delicado. Es una muestra finita tomada de una población o, más ampliamente, de un proceso generador de datos que imaginamos mayor que lo efectivamente observado. En forma tabular solemos escribir
 
 \[
 X \in \mathbb{R}^{n \times p}
 \]
 
-donde \(n\) es el número de observaciones y \(p\) el número de variables predictoras. En problemas supervisados, esa matriz suele ir acompañada por una variable objetivo
+donde \(n\) es el número de observaciones y \(p\) el número de variables predictoras. Si estamos en un problema supervisado, además aparece una respuesta
 
 \[
 y \in \mathbb{R}^n
 \]
 
-o por un vector de etiquetas en un conjunto discreto. La notación es compacta, pero deja escondida la pregunta más importante: ¿qué representa cada fila?
+o bien un vector de etiquetas discretas.
 
-Esa pregunta define la **unidad de análisis**. Una fila puede ser un cliente, una transacción, un documento, una imagen, una consulta médica, un día o una ventana temporal. Cambiar la unidad de análisis cambia el problema completo. Si en un proyecto de churn cada fila representa un cliente, el modelo aprenderá diferencias entre clientes. Si cada fila representa semanas de actividad por cliente, el problema pasa a involucrar secuencias agregadas, dependencia temporal y otro criterio de validación. La tabla puede verse parecida; el problema ya no lo es.
+La notación es útil, pero enseguida tapa la pregunta que más importa: qué representa una fila. Esa pregunta define la unidad de análisis. Una fila puede ser un cliente, una transacción, una imagen, un documento, una consulta médica, un dispositivo, un día o una ventana temporal. Y ese detalle, que a veces parece meramente administrativo, en realidad redefine el problema completo. Si cada fila corresponde a un cliente, el modelo compara clientes entre sí. Si cada fila corresponde a una semana por cliente, el modelo compara estados temporales del mismo cliente y de otros. El target cambia, la validación cambia y también cambia el sentido del error.
 
-Por eso una respuesta madura nunca supone independencia solo porque el dataset tiene filas y columnas. Dos registros del mismo paciente, del mismo dispositivo o del mismo usuario no son observaciones intercambiables sin más. El supuesto i.i.d. no viene garantizado por el formato tabular. Hay que justificarlo.
+Por eso conviene desconfiar del supuesto de independencia cuando aparece una tabla prolija con filas y columnas. Dos registros del mismo paciente, del mismo comercio o del mismo usuario no se vuelven observaciones intercambiables solo porque estén en renglones distintos. El famoso supuesto i.i.d. no viene garantizado por el formato del archivo. Hay que ganárselo entendiendo el proceso que produjo esos datos.
 
 ### 1.4 Features, target y variable respuesta
 
-En aprendizaje supervisado distinguimos entre variables de entrada y variable de salida. A las primeras se las llama **features**, variables predictoras o covariables. A la segunda se la llama **target**, variable objetivo, etiqueta o variable respuesta. La distinción parece simple, pero en la práctica es una de las zonas donde más decisiones metodológicas se concentran.
+En aprendizaje supervisado distinguimos entre las variables de entrada y la variable de salida. Las primeras reciben distintos nombres, pero la palabra feature se volvió habitual. La segunda suele llamarse target, etiqueta o variable respuesta. Detrás de esa separación aparentemente simple hay una decisión de enorme importancia: qué parte de lo observado usaremos como información disponible y qué parte consideraremos el resultado que queremos anticipar.
 
-No toda columna disponible merece convertirse en feature. Algunas no contienen información útil, otras son demasiado inestables, otras duplican lo que ya expresan otras variables y otras introducen fuga de información. Elegir features no es un trámite administrativo: es una hipótesis sobre qué aspectos del mundo observado contienen señal relevante para aproximar el target.
+Elegir features no es juntar todas las columnas disponibles. Es formular una hipótesis sobre qué aspectos observables del fenómeno pueden aportar señal. Algunas variables no dicen casi nada. Otras duplican información ya presente. Otras cambian de significado con el tiempo. Otras contienen datos que, al momento de decidir, todavía no existirían y por eso introducen fuga de información. En ciencia de datos rara vez la dificultad principal es la falta de columnas; mucho más frecuente es la falta de criterio para distinguir cuáles son legítimas y cuáles no.
 
-La variable objetivo requiere todavía más cuidado. Expresiones como "cliente en riesgo", "caso complicado" o "usuario valioso" no son targets; son etiquetas vagas. Hay que convertirlas en reglas observables. Por ejemplo: "cliente que cancela el servicio dentro de los próximos 60 días y no se reactiva durante ese período". Solo cuando el target queda operacionalizado el problema se vuelve entrenable, evaluable y discutible con rigor.
+Con el target ocurre algo todavía más delicado. Muchas formulaciones empiezan con expresiones vagas, como "cliente riesgoso" o "paciente crítico". Eso puede servir para una conversación inicial, pero no alcanza para entrenar. Un target modelable exige una regla operativa. En churn, por ejemplo, no alcanza con decir que queremos "clientes que se van". Hay que especificar algo como: cliente que cancela el servicio dentro de los próximos sesenta días y no se reactiva en ese período. Recién en ese momento el problema deja de ser una intuición razonable y pasa a convertirse en un objeto técnico que puede discutirse, medirse y auditarse.
 
 ### 1.5 Tipos de problemas: clasificación, regresión, clustering y otras tareas
 
-La primera gran división metodológica depende de la naturaleza de la salida. En **clasificación** el objetivo pertenece a un conjunto discreto de clases. Puede tratarse de un problema binario, multiclase o multilabel. En **regresión**, la salida es numérica y continua o casi continua: precio, demanda, duración, temperatura, ingreso esperado. En **clustering** no hay etiquetas observadas durante el entrenamiento y lo que se busca es detectar estructura o agrupamientos bajo una noción de similitud.
+La primera gran bifurcación práctica surge de la forma que debe tener la respuesta. Si lo que se espera es una categoría, estamos frente a un problema de clasificación. Si lo que importa es estimar una magnitud numérica, hablamos de regresión. Si no existen etiquetas y el interés está en descubrir estructura, agrupar casos o resumir información, entramos en el territorio del aprendizaje no supervisado, donde clustering es una de las tareas más conocidas.
 
-La taxonomía, sin embargo, no termina ahí. También existen problemas de ranking, recomendación, detección de anomalías, reducción de dimensionalidad, pronóstico temporal y estimación de supervivencia, entre otros. Lo importante no es memorizar una lista, sino entender que cada familia de problemas arrastra decisiones posteriores distintas: qué pérdida tiene sentido, cómo se evalúa, qué significa cometer un error y qué se puede interpretar del resultado.
+Sin embargo, esa clasificación solo cobra sentido cuando se la conecta con la decisión que vendrá después. El riesgo crediticio puede formularse como una clasificación binaria, como la estimación continua de una pérdida esperada o como un ranking de solicitantes ordenados por riesgo. Ninguna de esas formulaciones es superior en abstracto. La mejor será la que traduzca con más fidelidad la manera en que la organización debe actuar. Si solo pueden revisarse manualmente cien casos por semana, tal vez un ranking sea más natural que una clase dura. Si el costo importa en unidades monetarias, quizá una regresión tenga más sentido que un sí o no.
 
-Una misma necesidad real puede formularse de más de una manera. El riesgo crediticio, por ejemplo, puede modelarse como clasificación binaria, como regresión de pérdida esperada o como ranking de solicitantes por prioridad. La mejor formulación no es la más elegante en abstracto, sino la que mejor se acopla a la decisión que deberá tomarse.
+Lo importante, entonces, no es memorizar etiquetas escolares, sino entender que cada familia de problemas arrastra una noción distinta de error, una salida distinta del modelo y una forma distinta de convertir esa salida en decisión.
 
 ### 1.6 Aprendizaje supervisado y no supervisado
 
-En aprendizaje supervisado se observan pares \((x_i, y_i)\) y se busca aprender una relación entre entradas y salidas. En aprendizaje no supervisado se observan solo \(x_i\), y el objetivo ya no es predecir una etiqueta conocida, sino descubrir estructura, segmentar, reducir ruido o construir representaciones más útiles.
-
-Una manera formal de escribir el aprendizaje supervisado es mediante una función de pérdida \(L\) y un riesgo esperado:
+En aprendizaje supervisado observamos pares \((x_i, y_i)\) y buscamos una regla que conecte entradas con salidas. Lo que intenta aprenderse no es la lista de respuestas observadas, sino una relación más general que permita anticipar la salida de casos nuevos. Si pudiéramos ver la distribución real \(P\) que genera los datos, la tarea ideal sería elegir una función \(f\) que minimizara el riesgo esperado
 
 \[
 R(f) = \mathbb{E}_{(X,Y)\sim P}[L(Y, f(X))]
 \]
 
-Aquí \(P\) representa la distribución real, generalmente desconocida, que genera los datos, y \(f\) es la regla de predicción. Como \(P\) no se conoce, en la práctica se minimiza el riesgo empírico:
+donde \(L\) es una función de pérdida. Como esa distribución es desconocida, trabajamos con lo único que tenemos: la muestra observada. Entonces minimizamos el riesgo empírico
 
 \[
-\hat R_n(f) = \frac{1}{n}\sum_{i=1}^{n} L(y_i, f(x_i))
+\hat R_n(f) = \frac{1}{n}\sum_{i=1}^{n} L(y_i, f(x_i)).
 \]
 
-Toda la teoría de generalización nace de la diferencia entre estas dos expresiones. Un modelo puede obtener un riesgo empírico muy bajo y, sin embargo, comportarse mal fuera de la muestra. En no supervisado el problema es aún más delicado, porque no existe una variable respuesta que permita definir una noción única de error predictivo. Por eso la evaluación requiere más interpretación y menos automatismo.
+Dicho en lenguaje llano, el modelo aprende a equivocarse poco en los datos disponibles con la esperanza de que esa habilidad se extienda a datos futuros. Toda la teoría de generalización, con sus precauciones y sus límites, nace de la distancia entre esas dos cosas.
+
+En aprendizaje no supervisado, en cambio, observamos solo \(x_i\). Ya no existe una respuesta correcta externa que nos diga qué tan bien estamos. El problema pasa a ser encontrar estructura, compresión o representación útil sin una etiqueta que funcione como árbitro. Eso vuelve al criterio más importante. Cuando no hay un target que discipline el análisis, el peso de las decisiones conceptuales sobre la representación y el objetivo aumenta mucho.
 
 ### 1.7 Predicción versus causalidad
 
-Una de las confusiones más persistentes consiste en tomar un buen modelo predictivo como si fuera un descubrimiento causal. Son problemas distintos. La predicción pregunta por \(P(Y \mid X)\): dado lo que observo, ¿qué puedo anticipar? La causalidad pregunta qué ocurriría si interviniera sobre una variable. Ese segundo problema se expresa de manera natural con el operador \(do(\cdot)\), por ejemplo \(P(Y \mid do(X=x))\).
+Pocas confusiones cuestan tanto como creer que un buen predictor ya es, por eso mismo, una explicación causal. La predicción pregunta qué puede anticiparse dado lo que se observa. La causalidad pregunta qué ocurriría si interviniéramos sobre una variable y alteráramos el sistema. En el primer caso trabajamos con regularidades observadas; en el segundo, con mundos contrafácticos.
 
-Que una variable mejore mucho la predicción no implica que modificarla produzca el efecto esperado. Un modelo puede encontrar que la cantidad de reclamos al call center es un gran predictor de churn. De ahí no se sigue que aumentar reclamos cause abandono. Tal vez lo que ocurre es exactamente lo contrario: quienes ya están insatisfechos reclaman más. La ciencia de datos aplicada trabaja muchas veces con asociación predictiva; la inferencia causal exige diseños, supuestos y herramientas específicas. Confundir ambos planos lleva a errores conceptuales graves y a malas decisiones.
+En lenguaje probabilístico, la predicción suele moverse alrededor de expresiones como \(P(Y \mid X)\). La causalidad exige pensar en cantidades del tipo
+
+\[
+P(Y \mid do(X=x)),
+\]
+
+donde \(X\) no solo se observa, sino que se fija por intervención. El contraste parece pequeño en la notación, pero conceptualmente es enorme. Una variable puede ser excelente para anticipar un resultado sin que manipularla cambie ese resultado.
+
+En un problema de abandono, por ejemplo, la cantidad de reclamos al call center puede predecir muy bien qué clientes terminarán yéndose. Eso no autoriza a concluir que hacerlos reclamar más provocaría abandono. Es mucho más plausible que los clientes que ya están insatisfechos tiendan a reclamar más. Un modelo predictivo puede ser utilísimo para asignar recursos de retención y, al mismo tiempo, no decir nada directo sobre qué intervención es causalmente eficaz.
 
 ### 1.8 Función de pérdida, riesgo y criterio de decisión
 
-Todo modelo optimiza algo, aunque ese "algo" no siempre se explicite. Ese objeto suele ser una **función de pérdida**, es decir, una manera de cuantificar cuán costoso es equivocarse. En clasificación la pérdida 0-1 castiga todo error por igual. En regresión, la pérdida cuadrática penaliza con especial dureza los errores grandes. En clasificación probabilística, la log-loss castiga mucho las predicciones falsas emitidas con exceso de confianza.
+Todo modelo optimiza algo, aunque el usuario no siempre sea consciente de ello. Ese algo suele ser una función de pérdida, una manera de cuantificar el costo de equivocarse. En clasificación binaria, la pérdida 0-1 trata todos los errores por igual. En regresión, la pérdida cuadrática castiga especialmente los errores grandes. En clasificación probabilística, la log-loss penaliza con dureza las predicciones muy confiadas cuando resultan erróneas.
 
-Pero la pérdida de entrenamiento no agota el problema. Un sistema real no solo predice: decide. Si un modelo devuelve una probabilidad \(\hat p(x)\), alguien deberá traducirla a una acción. Esa traducción depende del costo relativo de falsos positivos y falsos negativos. Si el costo de un falso positivo es \(C_{FP}\) y el de un falso negativo es \(C_{FN}\), una regla elemental de decisión bajo costo esperado sugiere clasificar como positivo cuando
+Pero conviene distinguir dos niveles. Una cosa es la pérdida con la que se entrena el modelo. Otra, la regla con la que después se actúa. Si el modelo produce una probabilidad \(\hat p(x)\), alguien deberá decidir a partir de qué valor se considera un caso positivo. Ese umbral no debería salir de la costumbre, sino del costo relativo de los errores. Si llamar positivo a un caso negativo cuesta \(C_{FP}\) y dejar pasar un verdadero positivo cuesta \(C_{FN}\), una regla elemental de costo esperado sugiere clasificar como positivo cuando
 
 \[
-(1-p)C_{FP} < pC_{FN}
+(1-p)C_{FP} < pC_{FN},
 \]
 
 lo que equivale a
 
 \[
-p > \frac{C_{FP}}{C_{FP} + C_{FN}}
+p > \frac{C_{FP}}{C_{FP} + C_{FN}}.
 \]
 
-La fórmula importa menos por su aspecto algebraico que por su significado. Si dejar pasar un caso positivo es muy costoso, el umbral debe bajar. Una formación sólida exige poder responder siempre tres preguntas: qué se optimiza, por qué se optimiza eso y cómo esa optimización se traduce en una decisión concreta.
+La fórmula es sencilla, pero la enseñanza es profunda. El umbral correcto depende de cuánto duele cada tipo de error. Si perder un caso importante es muy costoso, el sistema deberá ser más sensible y aceptar más falsas alarmas. Si una intervención innecesaria es muy cara, el umbral debería subir. Lo que aquí se juega no es una preferencia matemática, sino la traducción entre el lenguaje del modelo y el lenguaje de la decisión.
 
 ## Capítulo 2. Cómo formular correctamente un problema de datos
 
 ### 2.1 Del problema del mundo real al problema modelable
 
-Las organizaciones no piden "aplicar XGBoost". Piden reducir rotación, mejorar una campaña, anticipar demanda, detectar fraude o segmentar usuarios. El primer trabajo serio de la ciencia de datos consiste en traducir esa necesidad a una formulación operativa. Traducir no significa solo cambiar palabras por columnas. Significa fijar con precisión cuál es la unidad de análisis, qué evento se quiere anticipar o describir, con qué horizonte temporal, usando qué información disponible al momento de decidir y con qué costo para cada tipo de error.
+En la práctica, casi nadie necesita "aplicar un algoritmo". Lo que las organizaciones necesitan es reducir mora, anticipar fraude, priorizar casos, mejorar retención, ordenar atención, estimar demanda o comprender segmentos. El primer trabajo serio de la ciencia de datos consiste en traducir esas necesidades, que suelen venir expresadas en lenguaje cotidiano o institucional, a una pregunta que el sistema pueda aprender y evaluar.
 
-Si alguna de esas piezas queda difusa, el proyecto parece avanzar pero en realidad se apoya sobre una pregunta mal hecha. Ese tipo de error es especialmente peligroso porque suele descubrirse tarde: cuando ya se modeló, ya se evaluó y alguien empieza a notar que la respuesta no sirve para tomar la decisión que motivó el trabajo.
+Esa traducción exige fijar varias piezas a la vez. Hay que decidir qué representa una observación, qué evento o magnitud se quiere modelar, con qué horizonte temporal, con qué información disponible al momento de decidir y con qué criterio se medirá el error. Cuando alguna de esas piezas queda implícita, el proyecto puede avanzar durante semanas y seguir respondiendo una pregunta incorrecta. El problema no aparecerá como un bug visible; aparecerá como una desconexión silenciosa entre la métrica del modelo y la decisión real.
 
 ### 2.2 Unidad de análisis, granularidad y nivel de agregación
 
-La **granularidad** indica el nivel de detalle con el que observamos el fenómeno. No es lo mismo trabajar con transacciones individuales que con agregados mensuales por cliente, ni con registros horarios que con promedios semanales. Cada nivel de agregación resuelve algunos problemas y crea otros.
+La granularidad es el nivel de detalle con el que el fenómeno queda representado. Y no existe un nivel universalmente correcto. Una fila por transacción conserva mucha información local, pero introduce dependencia temporal y puede volver el problema muy grande y ruidoso. Una fila mensual por cliente simplifica el análisis, aunque a costa de borrar patrones finos. La pregunta siempre es la misma: qué resolución necesita realmente la decisión que vendrá después.
 
-Una granularidad muy fina puede conservar secuencias importantes, pero también introducir dependencia entre filas, ruido y explosión del número de observaciones. Una granularidad muy gruesa simplifica el modelado, aunque a costa de ocultar variación relevante. Esta decisión afecta la forma del target, la naturaleza de las features, la estrategia de validación y hasta el sentido de los joins entre tablas. Muchas bases "mal integradas" no están mal integradas por un error técnico, sino porque combinan fuentes con granularidades incompatibles sin haber definido primero qué representa una fila.
+En detección de fraude, por ejemplo, una transacción individual puede ser la unidad natural porque el comportamiento sospechoso se juega en la secuencia inmediata y en el contexto cercano. Si agregáramos todo a nivel mensual por cliente, se perdería justamente la información que vuelve identificable el fenómeno. En cambio, para estimar el riesgo general de abandono quizá una foto mensual sea suficiente y hasta más estable. La granularidad correcta no es la más detallada, sino la que conserva la estructura relevante sin deformar el problema.
 
 ### 2.3 Horizonte temporal y disponibilidad de información
 
-En problemas predictivos no alcanza con preguntar qué se quiere predecir. También hay que precisar **cuándo** se quiere predecir. Ese punto organiza todo el problema. Predecir mora a 12 meses al momento de otorgar un crédito no es lo mismo que predecir atraso a 30 días con información del comportamiento reciente. Cambia el target, cambian las variables legales y cambia el criterio de utilidad del modelo.
+En problemas predictivos no alcanza con decir qué queremos anticipar. También hay que dejar claro cuándo queremos anticiparlo. Ese instante organiza todo lo demás. Predecir mora a doce meses en el momento de originación del crédito no es el mismo problema que predecir atraso a treinta días usando comportamiento reciente. Cambian las variables legítimas, cambia la dificultad del target y cambia el tipo de decisión que la salida puede sostener.
 
-La regla central es simple y decisiva: toda feature debe representar información que estaría disponible en el instante real de decisión. Si una variable solo se conoce después del evento, usarla en entrenamiento introduce **data leakage**. El modelo parecerá mejor de lo que realmente es porque estará aprendiendo con pistas del futuro. En ciencia de datos, una formulación temporal vaga casi siempre termina en una validación optimista.
+La regla de oro es simple y severa: cada feature debe representar información que estaría realmente disponible en el momento de decidir. Si una variable se conoce después del evento o se construye usando ventanas que miran hacia adelante, el modelo aprende con pistas del futuro. Eso produce lo que se llama data leakage. El resultado suele ser tentador porque las métricas suben, pero es un éxito ficticio. Un modelo que necesita el futuro para predecir el futuro no entendió nada; solo hizo trampa sin saberlo.
 
 ### 2.4 Ejemplo completo de formulación: predicción de abandono
 
-La frase "queremos anticipar qué clientes se van a ir" todavía no define un problema modelable. Hace falta una reformulación más precisa, por ejemplo: "Para cada cliente activo al cierre de cada mes, estimar la probabilidad de cancelar el servicio dentro de los próximos 60 días utilizando exclusivamente información disponible hasta ese cierre. La decisión asociada será activar o no una campaña de retención".
+Vale la pena ver cómo cambia el problema cuando la formulación se vuelve precisa. La frase "queremos saber qué clientes se van a ir" todavía es demasiado vaga. En cambio, si escribimos que para cada cliente activo al cierre de cada mes queremos estimar la probabilidad de cancelar el servicio dentro de los siguientes sesenta días utilizando exclusivamente información disponible hasta ese cierre, ya cambió la calidad intelectual del proyecto. Ahora sabemos qué representa una observación, cuál es el target, qué horizonte temporal se está usando y qué información es legítima.
 
-Esa redacción ya contiene decisiones estructurales. La unidad de análisis es "cliente activo al cierre de mes". El target es "cancelación dentro de 60 días". El horizonte temporal está fijado. Las features válidas quedan delimitadas por el instante de corte. Y la salida del modelo no es todavía la acción, sino un insumo para una acción posterior. Formular así el problema permite discutir de verdad si conviene clasificar, rankear o calibrar probabilidades; sin esa formulación, cualquier comparación de modelos flota en el aire.
+Además, esa redacción deja claro algo crucial: el modelo produce una probabilidad, no una acción automática. La acción vendrá después, cuando se compare el costo de intervenir con el costo de perder al cliente. Redactar así el problema no es una formalidad burocrática. Es la forma de obligar a todos los involucrados a hablar del mismo objeto.
 
 ### 2.5 Clasificación, regresión o clustering: cómo decidir
 
-Una heurística útil consiste en mirar la naturaleza del target. Si la salida pertenece a un conjunto finito de categorías, estamos frente a clasificación. Si es una magnitud numérica continua, el problema es de regresión. Si no existe target y se busca estructura latente, el terreno es el del aprendizaje no supervisado.
+Muchas veces la salida deseada parece dictar de inmediato el tipo de problema, pero las decisiones maduras nacen cuando varias formulaciones son posibles. Si lo importante es responder sí o no, clasificación será natural. Si interesa una magnitud, la regresión suele ser el punto de partida. Si no existe target y lo que se busca es segmentar o resumir estructura, clustering puede tener sentido.
 
-Sin embargo, las decisiones importantes aparecen en las zonas grises. El mismo problema puede admitir varias formulaciones válidas. La morosidad puede verse como clasificación binaria, como regresión de pérdida esperada o como ranking de prioridad. La elección correcta depende de qué decisión seguirá al modelo. Si hay que asignar un cupo fijo de revisiones, quizá el ranking sea más natural que la clasificación. Si hay que estimar pérdidas monetarias, la regresión puede capturar mejor el problema. Elegir bien la tarea es ya parte del modelado.
+Sin embargo, la formulación correcta no se decide mirando solo la naturaleza del dato, sino la forma que deberá tomar la acción. En algunos contextos basta con ordenar casos por prioridad. En otros se necesita una probabilidad bien calibrada. En otros el negocio está definido en dinero y conviene modelar directamente pérdida esperada. La pregunta fértil no es "qué algoritmo quiero usar", sino "qué tipo de salida permite decidir mejor".
 
 ### 2.6 Costo del error y diseño de la métrica
 
-Las métricas no son medallas universales. Son formalizaciones cuantitativas de qué significa equivocarse en un contexto concreto. Accuracy, F1, AUC, MAE o RMSE solo cobran sentido cuando se los relaciona con el costo real del error. En medicina puede ser preferible tolerar muchos falsos positivos con tal de no dejar pasar casos graves. En un filtro de spam puede ocurrir lo contrario: ocultar un correo importante puede ser más costoso que dejar pasar algunos mensajes basura.
+Cada problema arrastra su propia economía del error. Un falso negativo puede ser gravísimo en screening médico, donde dejar pasar un caso relevante tiene consecuencias mucho más costosas que generar una falsa alarma. En un filtro de spam puede ocurrir lo contrario: quizás sea más grave ocultar un correo importante que tolerar varios mensajes basura. Cuando se entiende esto, la elección de la métrica deja de ser un trámite posterior y se vuelve parte de la formulación del problema.
 
-Una buena formulación obliga a pensar la métrica antes del entrenamiento. Si la clase positiva es rara y operativamente crucial, accuracy será insuficiente. Si los errores grandes son mucho peores que los errores moderados, RMSE puede reflejar mejor el problema que MAE. Elegir una métrica por costumbre es una señal de inmadurez conceptual; elegirla porque traduce el costo del error es el comienzo de un análisis serio.
+Accuracy, F1, AUC, MAE o RMSE no son trofeos universales. Son maneras distintas de decir, en lenguaje numérico, qué clase de error pesa más. Por eso una métrica solo es buena si representa, al menos de forma aproximada, el costo real del problema. Pensarla después del entrenamiento es llegar tarde; debería formar parte de la definición inicial del objetivo.
 
 ### 2.7 Cómo se nota que un problema está mal formulado
 
-Los problemas mal formulados tienen síntomas bastante estables. El target cambia de significado a mitad del análisis. No queda claro qué variables serían legales al momento de predecir. La métrica elegida no representa el costo real del error. El conjunto de entrenamiento mezcla poblaciones o períodos incompatibles con el uso futuro. Y, sobre todo, la pregunta de negocio no coincide con la variable que efectivamente se está modelando.
+Los síntomas de una mala formulación se parecen bastante entre sí. El target cambia de significado a medida que avanza el trabajo. Nadie puede explicar con precisión qué información era legal al momento de predecir. La métrica elegida no tiene relación con la decisión. Se combinan períodos o poblaciones que no deberían mezclarse. O, más sencillamente, se habla de una necesidad de negocio y se termina modelando otra cosa.
 
-Cuando ocurre eso, el pipeline puede verse prolijo y aun así producir algo inútil. Una parte importante del trabajo profesional consiste precisamente en detectar esas inconsistencias antes de que se disfracen de sofisticación técnica.
+Cuando eso ocurre, el proyecto no fracasa necesariamente de manera visible. Puede entregar gráficos prolijos y métricas vistosas. Lo peligroso es justamente esa apariencia de normalidad. Gran parte del oficio profesional consiste en detectar a tiempo cuándo se está respondiendo con precisión una pregunta que nunca debió haberse formulado así.
 
 ## Parte II. Leer el dato antes de modelarlo
 
-Formular bien el problema no alcanza. El siguiente paso es aprender a leer los datos como evidencia y no como materia prima neutra. Esta parte se concentra en dos tareas previas al modelado que suelen hacerse mal cuando se las trata como rutina: el análisis de calidad y el análisis exploratorio. Su función no es "preparar" el dataset en sentido superficial, sino comprender qué tipo de objeto tenemos entre manos, qué sesgos arrastra y qué transformaciones serán legítimas.
+Una vez formulado el problema, aparece una obligación que suele subestimarse: aprender a leer el dataset como evidencia y no como materia prima neutra. Antes de construir modelos conviene entender qué representan realmente las columnas, qué sesgos trae la muestra, qué cosas faltan, qué significados cambiaron con el tiempo y qué transformaciones son legítimas. Modelar sin esa lectura previa es parecido a sacar conclusiones sobre un experimento sin haber entendido cómo se midió.
 
 ## Capítulo 3. Anatomía del dataset y calidad de datos
 
 ### 3.1 Tipos de variables y escalas de medición
 
-No basta con separar variables numéricas de variables categóricas. Esa distinción es demasiado gruesa para decidir cómo tratarlas. Una variable **nominal** distingue categorías sin orden intrínseco, como ciudad o marca. Una variable **ordinal** introduce un orden, como nivel educativo o severidad clínica. Las variables **de intervalo** permiten comparar diferencias, pero no poseen un cero absoluto natural, como la temperatura en Celsius. Las variables **de razón** sí tienen un cero interpretable, como ingresos, peso o distancia.
+No alcanza con separar variables numéricas y categóricas. Esa división es demasiado gruesa para muchas decisiones importantes. Una variable nominal distingue categorías sin orden intrínseco, como una marca o una ciudad. Una ordinal agrega un orden, como un nivel de severidad o un tramo educativo. Las variables de intervalo permiten comparar diferencias, aunque no cuentan con un cero absoluto natural; la temperatura en Celsius es el ejemplo clásico. Las variables de razón, en cambio, sí tienen un cero interpretable y admiten comparaciones multiplicativas, como ingresos, peso o distancia.
 
-La escala de medición no es un detalle teórico. Delimita qué operaciones tienen sentido. Promediar códigos postales no tiene interpretación. Tratar como numérica una categoría meramente nominal impone una geometría artificial. Ignorar el orden de una variable ordinal puede hacer perder información relevante. En ciencia de datos, representar mal una variable equivale a deformar el fenómeno antes de empezar a aprender sobre él.
+La razón por la que esto importa es sencilla: la escala de medición decide qué operaciones tienen sentido. Promediar códigos postales no dice nada. Tratar como continua una categoría nominal codificada con números impone una geometría artificial. Ignorar el orden de una variable ordinal es tirar información a la basura. Cuando alguien codifica nivel educativo como 1, 2, 3 y 4, debe recordar que esa secuencia puede servir para ordenar, pero no garantiza que la distancia entre 1 y 2 sea comparable con la distancia entre 3 y 4. No todos los números miden.
 
 ### 3.2 Calidad de datos: completitud, validez, consistencia y unicidad
 
-La expresión "limpieza de datos" suele ocultar demasiadas cosas distintas bajo un mismo rótulo. Conviene separar dimensiones. La **completitud** pregunta cuánto falta. La **validez** pregunta si los valores observados respetan rangos, formatos y reglas plausibles. La **consistencia** examina si distintas columnas o tablas se contradicen. La **unicidad** verifica si hay duplicados indebidos. A esto se suma una dimensión menos visible pero igual de importante: la **trazabilidad**, es decir, saber de dónde viene cada dato y qué transformaciones sufrió.
+La expresión "limpieza de datos" suele mezclar problemas de naturaleza muy distinta. Conviene desarmarla. La completitud pregunta qué parte de la información falta. La validez pregunta si los valores observados respetan rangos, tipos y formatos plausibles. La consistencia examina si distintas columnas o tablas se contradicen entre sí. La unicidad revisa si hay duplicados indebidos. Y a todo eso debería agregarse una dimensión que en la práctica vale oro: la trazabilidad, es decir, saber de dónde proviene cada dato y qué transformaciones atravesó.
 
-Cada problema de calidad afecta de un modo diferente el análisis. Un faltante puede requerir imputación o exclusión. Una inconsistencia entre columnas puede delatar una regla de negocio mal aplicada. Un duplicado puede inflar artificialmente el peso de ciertos casos. Una variable cuyo significado cambió en el tiempo puede contaminar evaluaciones temporales. La calidad no es un casillero a marcar; es parte de la interpretación del dato.
+Cada dimensión afecta algo diferente del modelado. Un faltante puede obligar a imputar. Una inconsistencia puede revelar una regla de negocio mal implementada. Un duplicado puede sobreponderar casos que deberían contarse una sola vez. Una columna cuyo significado cambió con el tiempo puede volver inútil una validación temporal. Por eso la calidad no es un trámite previo, sino una parte del sentido mismo del dato.
 
 ### 3.3 Duplicados, inconsistencias y errores semánticos
 
-Los duplicados rara vez son un asunto trivial. A veces son registros repetidos por error; otras veces son eventos distintos que solo parecen iguales. La tarea no consiste en eliminarlos por reflejo, sino en comprender qué representan. Dos filas idénticas pueden indicar una falla de ingesta, pero también un reprocesamiento legítimo. Dos clientes con el mismo identificador y atributos contradictorios pueden revelar un problema más profundo de integración.
+No todo duplicado es un error y no todo error es visible como duplicado. Dos filas idénticas pueden provenir de una duplicación indebida de ingesta, pero también pueden representar dos eventos legítimos que, por casualidad, comparten todos los valores observados. Antes de borrar, hay que entender qué representa realmente una fila.
 
-Los errores semánticos son todavía más insidiosos. Unidades mezcladas, monedas distintas, categorías escritas de formas incompatibles, cambios de nomenclatura entre años o columnas cuyo significado administrativo mutó con el tiempo. Estos problemas no suelen aparecer como valores nulos ni como tipos mal inferidos. Exigen lectura crítica, control de contexto y diálogo con quienes conocen el origen de la base. Limpiar sin comprender el significado del dato es apenas mover la suciedad de lugar.
+Los problemas semánticos suelen ser todavía más peligrosos porque no siempre aparecen en los controles formales. Una misma columna puede mezclar monedas diferentes, unidades incompatibles o definiciones administrativas que cambiaron sin cambiar el nombre del campo. Algo tan simple como una variable llamada `ingreso` puede significar, según el sistema y el período, ingreso personal mensual, ingreso anual declarado o ingreso del hogar. Un resumen estadístico no detecta ese problema. Hace falta lectura crítica y contexto.
 
 ### 3.4 Mecanismos de datos faltantes
 
-No todo faltante significa lo mismo. La distinción clásica entre MCAR, MAR y MNAR sigue siendo útil porque orienta la interpretación y la estrategia de imputación. Un faltante es **MCAR** (*Missing Completely At Random*) cuando su ausencia es independiente tanto del valor faltante como de las demás variables observadas. Es el caso más benigno y, en la práctica, el menos frecuente.
+Una celda vacía no es simplemente ausencia. También es una pista sobre cómo ocurrió la medición. La clasificación clásica distingue entre MCAR, MAR y MNAR. En el primer caso, la falta es completamente aleatoria respecto del valor faltante y del resto de las variables. En MAR, la ausencia depende de información observada. En MNAR, la ausencia depende del propio valor faltante o de factores no observados.
 
-Hablamos de **MAR** (*Missing At Random*) cuando la ausencia depende de variables observadas. Por ejemplo, el ingreso falta más en ciertas regiones o grupos etarios. En ese caso la ausencia no es completamente aleatoria, pero puede explicarse con información disponible. En **MNAR** (*Missing Not At Random*), en cambio, la probabilidad de ausencia depende del propio valor faltante o de factores no observados. Allí la omisión misma contiene señal difícil de recuperar. La importancia de esta clasificación es práctica: imputar con un método simple bajo un mecanismo MNAR puede deformar la distribución y las relaciones con el target de manera seria.
+La intuición detrás de esas siglas importa más que las siglas mismas. Si un ingreso falta porque un formulario se rompió al azar, el problema es uno. Si falta porque las personas de mayores ingresos prefieren no declararlo, el problema es muy distinto. En el segundo caso la ausencia ya está informando algo sobre el fenómeno. Pensemos en una encuesta de salud: si el peso falta más entre adultos mayores, la ausencia podría estar vinculada a la edad. Si falta sobre todo entre personas con obesidad severa porque evitan responder, la historia cambia por completo. Imputar de la misma manera en ambos escenarios es contar dos cuentos incompatibles como si fueran el mismo.
 
 ### 3.5 Outliers: error, rareza o parte esencial del fenómeno
 
-Un valor extremo no es necesariamente un error. Puede ser una medición fallida, una observación válida pero rara o, en algunos dominios, precisamente el tipo de caso que interesa detectar. En fraude, una transacción anómala puede ser la señal más valiosa. En un sensor industrial, un pico imposible puede indicar una avería del instrumento. En ingresos declarados, un valor desmesuradamente alto puede ser un error de carga o un caso genuino.
+Un valor extremo produce la tentación inmediata de borrarlo. A veces esa decisión es correcta. Otras veces es un error grave. Un outlier puede ser una medición defectuosa, un caso válido pero raro o, incluso, el tipo de caso que más importa detectar. La pregunta útil no es solo cuán lejos está del centro, sino qué historia plausible explica esa distancia.
 
-Por eso conviene separar **outlier estadístico** de **anomalía sustantiva**. El primero es raro respecto de la distribución observada; la segunda es rara respecto de la lógica del dominio. A veces coinciden. Otras no. Tratar todo valor extremo como basura elimina información útil; conservarlo todo sin criterio también es un error. La pregunta correcta no es solo cuán lejos está un punto, sino qué historia plausible explica esa distancia.
+En fraude, las observaciones raras pueden ser justamente el corazón del problema. En un sensor industrial, ciertos extremos pueden ser puro ruido instrumental. En una variable de ingresos, un valor muy alto puede corresponder a un cliente real de patrimonio excepcional y no a un error de carga. Las reglas estadísticas basadas en z-scores o rangos intercuartílicos sirven como alarma, no como sentencia final. La interpretación depende del fenómeno y del propósito del análisis.
 
 ### 3.6 Sesgo de muestreo, representatividad y desbalance de clases
 
-Un dataset puede estar impecablemente limpio y, aun así, representar mal el fenómeno. La calidad técnica de la tabla no compensa una mala calidad del muestreo. Si un modelo de crédito se entrena solo con clientes aprobados, lo que aprende puede no generalizar a solicitantes futuros. Si un sistema médico se entrena en un hospital de alta complejidad, quizá rinda peor en atención primaria. Si un corpus de texto proviene de un único canal, la generalización a otros registros discursivos puede ser débil.
+Un dataset puede estar formalmente limpio y, sin embargo, representar mal el mundo sobre el que luego se lo usará. Ese es uno de los problemas más profundos de la disciplina. Si la muestra está sesgada, el modelo aprenderá una versión sesgada de la normalidad. Ningún algoritmo sofisticado corrige por sí solo una muestra que no refleja la población de interés.
 
-El desbalance de clases es una forma particular y muy frecuente de este problema. Cuando la clase positiva es rara, la accuracy se vuelve engañosa y las métricas deben elegirse con mayor cuidado. Pero el punto de fondo es más amplio: la muestra no es solo un contenedor de ejemplos, sino una versión concreta del mundo sobre la cual el modelo aprenderá qué es "normal", qué es "raro" y qué merece ser priorizado.
+La situación aparece con nitidez en riesgo crediticio, donde a veces se entrena con clientes históricamente aprobados y luego se pretende generalizar sobre solicitantes futuros que no necesariamente se parecen a ellos. También aparece en problemas de clases raras. Cuando la clase positiva es muy infrecuente, accuracy se vuelve engañosa y muchas intuiciones basadas en tasas globales se distorsionan. Pero la rareza matemática no es el verdadero problema. El problema de fondo es qué mundo normal aprende el modelo a partir de la muestra que le dimos.
 
 ### 3.7 Qué debe salir de un análisis de calidad
 
-Una lectura rigurosa del dataset no debería producir una colección dispersa de observaciones, sino un diagnóstico estructurado. Ese diagnóstico tiene que dejar claro qué representa cada fila, qué significa cada columna, qué problemas de calidad están confirmados o son plausibles, qué mecanismos de faltante parecen actuar, qué variables pueden inducir fuga de información, qué sesgos de muestreo aparecen y qué restricciones impondrá todo eso sobre el modelado posterior.
+Al terminar un análisis de calidad serio, uno debería poder responder con precisión qué representa cada fila, qué significa cada columna, qué problemas de completitud, validez, consistencia o unicidad aparecieron, qué mecanismos plausibles explican los faltantes, qué variables son peligrosas por posible fuga de información y qué sesgos de muestreo limitan la generalización.
 
-Cuando un estudiante domina este punto deja de mirar la base como un conjunto neutro de columnas y empieza a verla como evidencia imperfecta. Esa transición intelectual es decisiva. Modelar bien depende, en gran medida, de haber aprendido primero a desconfiar con criterio.
+Si al final solo queda una lista dispersa de observaciones, entonces todavía no hubo diagnóstico. Lo que debería quedar es un mapa de restricciones y advertencias que condicione explícitamente el modelado posterior. Leer el dato bien es empezar a modelar bien.
 
 ## Capítulo 4. Análisis exploratorio de datos: leer antes de modelar
 
 ### 4.1 El sentido profundo del EDA
 
-El análisis exploratorio de datos, o EDA, no es una ceremonia previa al modelado ni una colección de gráficos de compromiso. Es la primera etapa inferencial del trabajo. Allí se estudian distribuciones, escalas, faltantes, outliers, relaciones, desbalances y posibles fugas. Un buen EDA no intenta impresionar: intenta responder preguntas.
+El análisis exploratorio de datos suele reducirse a "hacer gráficos", pero su función real es mucho más seria. Es el primer momento en que intentamos entender, con evidencia, cómo está organizado el problema. Un buen EDA reduce sorpresa, detecta inconsistencias conceptuales y cambia decisiones posteriores. Si después del análisis exploratorio nada se modifica en la formulación, en las transformaciones candidatas o en las sospechas metodológicas, probablemente el ejercicio fue decorativo.
 
-Por eso la calidad del EDA se mide por las decisiones que habilita. Si después de explorarlo no sabemos qué variables transformar, dónde sospechar leakage, qué familias de modelos podrían ser razonables o qué métricas deberían priorizarse, entonces el EDA fue ornamental. Mirar mucho no equivale a comprender.
+Explorar no significa pasear por la base sin rumbo. Significa interrogarla. Cómo se distribuyen las variables. Qué asimetrías dominan. Qué categorías son centrales y cuáles marginales. Qué relaciones parecen lineales y cuáles no. Dónde hay subgrupos, saturaciones, colas largas, escalas incompatibles o señales demasiado buenas para ser verdad. El EDA no reemplaza el modelado, pero sí mejora drásticamente la calidad de las preguntas con las que después se modela.
 
 ### 4.2 Estadística descriptiva univariada
 
-El análisis univariado estudia cada variable por separado. La media
+Mirar una variable por vez parece una tarea elemental, pero encierra varias intuiciones profundas. La media
 
 \[
 \bar x = \frac{1}{n}\sum_{i=1}^{n} x_i
 \]
 
-resume el centro aritmético de la muestra. La mediana, en cambio, señala el valor que deja la mitad de las observaciones a cada lado. Cuando la distribución es asimétrica o contiene outliers, la mediana suele describir mejor el centro típico que la media.
-
-La dispersión puede medirse con la varianza muestral
+resume un centro aritmético, aunque no siempre coincide con lo que un observador llamaría valor típico. La mediana divide la muestra en dos mitades y suele resistir mejor la influencia de valores extremos. La varianza muestral
 
 \[
 s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(x_i-\bar x)^2
 \]
 
-y con su raíz cuadrada, el desvío estándar. Pero como ambas dependen fuertemente de valores extremos, conviene complementarlas con cuantiles e intervalo intercuartílico:
+y el desvío estándar describen dispersión, mientras que el rango intercuartílico
 
 \[
 IQR = Q_3 - Q_1
 \]
 
-Lo importante no es recitar definiciones, sino interpretarlas. Si la media supera mucho a la mediana, hay asimetría a derecha. Si el IQR es pequeño y aparecen extremos muy alejados, la variable está concentrada en el centro con pocos casos raros. Una variable casi constante probablemente aporte poco a muchos modelos.
+resume la amplitud de la zona central de la distribución.
+
+Lo decisivo no es repetir estas definiciones, sino aprender a leer lo que insinúan. Cuando la media queda bastante por encima de la mediana suele haber una cola larga hacia la derecha. Cuando el IQR es pequeño y, al mismo tiempo, aparecen valores enormes, tal vez un puñado de casos raros esté dominando la escala. Cuando una variable casi no varía, quizá aporte poco a muchos modelos. La estadística descriptiva tiene sentido cuando ayuda a imaginar la forma del dato, no cuando se convierte en un rosario de números sin interpretación.
 
 ### 4.3 Frecuencias y análisis de variables categóricas
 
-En variables categóricas, el resumen central no es el promedio sino la distribución de frecuencias. Interesa saber qué categorías dominan, cuáles son raras, si la cardinalidad es alta y si existen codificaciones inconsistentes. Una categoría poco frecuente no debe eliminarse por inercia: puede ser ruido, pero también puede representar un segmento pequeño y relevante.
+En variables categóricas el centro no importa del mismo modo; lo que importa es cómo se reparte la masa entre categorías. Conviene mirar frecuencias absolutas y relativas, cardinalidad, categorías raras y codificaciones inconsistentes. A menudo, el análisis de categóricas descubre antes que nadie problemas semánticos silenciosos. Una columna de provincia que contiene `Bs As`, `Buenos Aires` y `BUENOS_AIRES` no está revelando tres regiones distintas, sino una misma etiqueta escrita de tres maneras.
 
-El análisis categórico también ayuda a detectar problemas silenciosos. Espacios extra, tildes inconsistentes, abreviaturas mezcladas, cambios históricos de nomenclatura o categorías que en realidad expresan datos faltantes con otra etiqueta. Muchos problemas de modelado empiezan como pequeños descuidos semánticos en variables categóricas.
+También aquí la intuición disciplinada importa más que la mecánica. Una categoría poco frecuente puede ser ruido o puede representar un segmento pequeño pero estratégico. Una alta cardinalidad puede volver incómodo el modelado, pero también puede contener información fina valiosa. Explorar una variable categórica es empezar a decidir qué estructura conviene preservar y cuál conviene simplificar.
 
 ### 4.4 Relaciones entre variables: correlación, dependencia y no linealidad
 
-El análisis multivariado busca entender cómo se relacionan las variables entre sí y con el target. Una herramienta clásica es la correlación de Pearson:
+El siguiente paso es mirar variables en relación. La correlación de Pearson
 
 \[
 r_{XY} = \frac{\sum_{i=1}^{n}(x_i-\bar x)(y_i-\bar y)}
 {\sqrt{\sum_{i=1}^{n}(x_i-\bar x)^2}\sqrt{\sum_{i=1}^{n}(y_i-\bar y)^2}}
 \]
 
-Esta medida resume asociación lineal y toma valores entre \(-1\) y \(1\). Es útil, pero tiene límites muy claros. Correlación cercana a cero no significa ausencia de relación. Si \(Y = X^2\) y \(X\) se distribuye simétricamente alrededor de cero, la relación es total y la correlación lineal puede ser casi nula.
+resume asociación lineal entre dos magnitudes. Es una herramienta valiosa, siempre que no se la confunda con una definición completa de dependencia. Una relación puede ser intensísima y, sin embargo, no quedar reflejada en la correlación lineal. Si \(Y = X^2\) y \(X\) se distribuye simétricamente alrededor de cero, la dependencia es total y la correlación puede ser cercana a cero.
 
-Por eso el EDA serio no se agota en una matriz de correlación. Necesita mirar no linealidades, interacciones, saturaciones, umbrales y subpoblaciones. En otras palabras, necesita criterio geométrico y no solo resumen numérico.
+Esa pequeña paradoja enseña algo importante. Correlación es una lente, no el fenómeno entero. Por eso un EDA serio no se conforma con coeficientes agregados. Busca curvaturas, saturaciones, interacciones, regímenes distintos por subgrupos, heterocedasticidad y cambios de comportamiento en distintos rangos. La pregunta no es solo si dos variables se mueven juntas, sino de qué manera lo hacen.
 
 ### 4.5 Visualización con propósito analítico
 
-Las visualizaciones valiosas no son las más vistosas, sino las que responden una pregunta. Un histograma muestra forma de distribución. Un boxplot resume dispersión y sugiere posibles extremos. Un scatterplot permite ver asociaciones, curvaturas, heterogeneidad y subgrupos. Un mapa de calor puede ser útil para una lectura panorámica, pero no reemplaza el examen fino de relaciones importantes.
+Una buena visualización no es la más vistosa, sino la que deja ver una estructura que importa. Un histograma ayuda a imaginar la forma de una distribución. Un boxplot resume dispersión y extremos. Un scatterplot permite ver curvatura, nubes separadas, densidades desiguales y relaciones que un coeficiente no captura. Un mapa de calor puede orientar una vista panorámica, aunque rara vez reemplaza el examen fino de las relaciones más importantes.
 
-En un examen y en un informe profesional vale la misma regla: un gráfico sin interpretación no explica nada. Cada visualización debería responder al menos tres preguntas. Qué muestra, por qué importa y qué decisión metodológica sugiere.
+La visualización vale cuando está al servicio de una pregunta. Qué se muestra. Por qué podría importar. Qué decisión metodológica sugiere. Cuando esas tres cosas no están claras, el gráfico se convierte en decoración estadística. Y decorar no es explorar.
 
 ### 4.6 EDA respecto del target
 
-Explorar respecto del target significa preguntar cómo cambian las features entre clases o a lo largo de la respuesta continua. En clasificación interesa saber si la clase positiva presenta distribuciones distintas, categorías más frecuentes, patrones temporales particulares o señales textuales específicas. En regresión interesa observar si la relación parece lineal, escalonada, saturada, heterocedástica o dominada por pocos puntos influyentes.
+Explorar respecto del target significa mirar cómo cambia la representación de los datos cuando el foco se posa sobre la variable que queremos predecir. En clasificación conviene comparar distribuciones entre clases, ver qué variables parecen separar mejor y dónde la diferencia es mínima. En regresión interesa entender si la relación parece aproximadamente lineal, si hay umbrales, escalones, saturaciones o varianzas que crecen con el nivel del target.
 
-Ese análisis orienta el modelado. Si una relación con el target es fuertemente no lineal, quizá convenga transformar la variable o usar un modelo capaz de capturar curvaturas. Si la clase está extremadamente desbalanceada, ya desde el EDA debe quedar claro que la accuracy será insuficiente. Explorar sin mirar el target es conocer la forma del dato; explorar respecto del target es empezar a entender la dificultad real del problema.
+Este paso orienta de manera muy concreta el modelado. Si una covariable se relaciona con la respuesta de forma claramente no lineal, quizá convenga transformarla o usar una familia de modelos más flexible. Si la clase positiva es rarísima, el EDA ya debería advertir que accuracy contará una historia engañosa. Explorar con el target presente no anticipa el resultado final del modelo, pero sí ayuda a no llegar a ciegas a la siguiente etapa.
 
 ### 4.7 El EDA como detector de leakage
 
-Muchas fugas de información pueden sospecharse antes de entrenar un solo modelo. Variables con separación casi perfecta respecto del target, timestamps posteriores al evento que se quiere predecir, identificadores administrativos ligados al resultado o columnas derivadas del proceso de resolución del caso son señales de alarma.
+Algunas fugas de información se descubren recién en producción, pero muchas dejan huellas visibles antes de entrenar nada. Variables que separan casi perfectamente las clases, timestamps sospechosamente posteriores al evento, columnas generadas por el proceso de resolución del caso o identificadores administrativos con contenido implícito son señales de alarma.
 
-Hay una regla empírica útil: cuando una variable parece demasiado buena para ser verdad, primero hay que desconfiar. Los grandes scores inesperados suelen deberse más a información ilegítima que a genialidad algorítmica.
+Hay una regla empírica que conviene tomarse en serio: cuando una variable parece milagrosamente buena, antes de celebrar hay que sospechar. En ciencia de datos, los resultados demasiado perfectos suelen deberle más al leakage que a una comprensión excepcional del fenómeno.
 
 ### 4.8 Qué debería producir un buen EDA
 
-Al terminar un EDA serio debería existir una imagen bastante precisa del dataset. Qué variables parecen estables y cuáles problemáticas. Qué transformaciones son plausibles. Qué desbalances, outliers y relaciones dominan el escenario. Dónde puede haber leakage. Qué familias de modelos tienen sentido como baseline y cuáles requerirán más trabajo de representación.
+Al final de un EDA bien hecho debería quedar una imagen más nítida del problema. Qué distribuciones dominan. Qué asimetrías o colas largas exigen atención. Qué variables están mal definidas, escaladas o codificadas. Qué relaciones con el target parecen prometedoras. Qué transformaciones podrían ayudar. Qué familias de modelos son plausibles. Qué riesgos metodológicos ya se ven venir.
 
-Si el EDA no cambia decisiones, probablemente fue una actividad cosmética. Su función no es adornar el informe, sino mejorar la calidad del razonamiento posterior.
+El EDA todavía no produce un modelo, pero sí algo igual de valioso: produce mejores preguntas y reduce el autoengaño. Y en una disciplina que vive de distinguir estructura de ruido, esa ganancia intelectual no es accesoria.
 
 ## Parte III. Preprocesar no es maquillar: representar bien para poder aprender
 
-Una vez entendido el dato aparece un problema más profundo que el de "dejarlo prolijo": cómo construir una representación sobre la que un modelo pueda aprender sin engañarse. Preprocesar no es embellecer la tabla. Es decidir cómo traducir un fenómeno imperfectamente observado a un espacio donde ciertas regularidades sean detectables sin destruir el sentido original del problema.
+Después de comprender el dato aparece la siguiente capa del problema: cómo construir una representación sobre la que un modelo pueda aprender sin traicionar el sentido del fenómeno. Preprocesar no es embellecer la tabla para que un algoritmo la tolere; es decidir qué estructura conviene preservar, qué ruido conviene amortiguar y qué supuestos estamos introduciendo al transformar.
 
 ## Capítulo 5. Preprocesamiento y construcción de representación
 
 ### 5.1 El principio rector: los modelos aprenden sobre representaciones
 
-Ningún modelo aprende directamente sobre el fenómeno. Aprende sobre la forma en que ese fenómeno quedó representado. Incluso cuando la base parece "lista", cada columna ya encapsula una decisión de medición, agregación o codificación. El preprocesamiento continúa esa tarea. Su objetivo no es solo corregir imperfecciones, sino hacer más legible la estructura relevante y menos dañino el ruido.
+Ningún modelo aprende sobre la realidad directamente. Aprende sobre la forma particular en que la realidad fue codificada en una tabla, en una secuencia o en un vector. Si la representación es pobre, ilegítima o confusa, el modelo aprenderá exactamente eso. Esta idea, aunque simple, explica buena parte de la práctica real: muchas mejoras grandes no provienen de cambiar de algoritmo, sino de cambiar la manera en que el problema está escrito.
 
-Dos principios gobiernan esta etapa. Primero: toda transformación que ajuste parámetros debe aprenderse solo con los datos de entrenamiento. Segundo: ninguna transformación debe alterar el significado del problema de una forma incompatible con el uso real del modelo. Preprocesar bien es, en el fondo, preservar sentido mientras se mejora aprendibilidad.
+Puede pensarse al algoritmo como a un lector. El fenómeno es lo que querríamos contarle, pero las features son el idioma en que finalmente se lo escribimos. Si ese idioma conserva mal las relaciones relevantes, el lector no tiene cómo inferirlas. Por eso la construcción de representación no es una etapa auxiliar. Es una de las zonas donde más claramente se vuelve visible el entendimiento del problema.
 
 ### 5.2 Pipelines y separación entre entrenamiento, validación y prueba
 
-Un error clásico consiste en imputar, escalar o reducir dimensión sobre toda la base antes de partirla en entrenamiento y prueba. Eso filtra información del conjunto de evaluación hacia el entrenamiento. Si estandarizamos una variable como
+Hay un error experimental muy frecuente: imputar, escalar, reducir dimensión o seleccionar variables usando toda la base, y recién después separar entrenamiento y evaluación. A primera vista parece una sutileza técnica; en realidad es una fuga de información. Si una transformación aprende algo de los datos, debe aprenderlo exclusivamente sobre entrenamiento y luego aplicarlo al resto.
+
+Si estandarizamos una variable como
 
 \[
-z_{ij} = \frac{x_{ij} - \mu_j}{\sigma_j}
+z_{ij} = \frac{x_{ij} - \mu_j}{\sigma_j},
 \]
 
-los parámetros \(\mu_j\) y \(\sigma_j\) deben calcularse con el conjunto de entrenamiento, y luego aplicarse al resto:
+los parámetros \(\mu_j\) y \(\sigma_j\) deben estimarse en el conjunto de entrenamiento. Recién después se usan para transformar validación o prueba:
 
 \[
-z_{ij}^{(test)} = \frac{x_{ij}^{(test)} - \mu_j^{(train)}}{\sigma_j^{(train)}}
+z_{ij}^{(test)} = \frac{x_{ij}^{(test)} - \mu_j^{(train)}}{\sigma_j^{(train)}}.
 \]
 
-La lógica se extiende a imputadores, selectores de variables, PCA, target encoding y cualquier otra transformación que "aprenda" algo de los datos. Los pipelines existen precisamente para encapsular esa disciplina y evitar leakage accidental.
+Lo mismo vale para imputadores, PCA, target encoding, selectores de variables y cualquier transformación que aprenda estructura. Los pipelines no son una comodidad de software; son una forma de imponer honestidad experimental.
 
 ### 5.3 Imputación: decidir bajo incertidumbre
 
-Imputar no es rellenar agujeros de manera mecánica. Es tomar una decisión estadística sobre valores no observados. Imputar con la media es simple, pero reduce artificialmente la varianza y puede aplanar relaciones importantes. La mediana suele ser más robusta frente a asimetrías y outliers. La moda puede ser razonable en categóricas de baja cardinalidad. La imputación por grupos aprovecha contexto. Métodos multivariados o basados en vecinos intentan preservar mejor la estructura conjunta, aunque al precio de más complejidad.
+Imputar significa tomar una decisión sobre un valor que no observamos. Por eso no debería presentarse como un simple rellenado. Imputar con la media puede ser cómodo, pero reduce varianza y distorsiona relaciones. La mediana resiste mejor a los extremos. La moda sirve en variables categóricas. La imputación por grupos incorpora contexto. Métodos basados en vecinos o en modelos multivariados intentan reconstruir mejor la estructura conjunta.
 
-La elección solo tiene sentido si se la vincula con el mecanismo de faltante. Si la ausencia misma contiene información, conviene además agregar una variable indicadora. En muchos problemas, ese simple indicador aporta señal que la imputación por sí sola destruiría. La pregunta correcta no es "qué método suena más sofisticado", sino "qué historia sobre el dato estoy asumiendo cuando completo de esta manera".
+La elección tiene sentido solo cuando se la conecta con la historia del faltante. Si la ausencia misma contiene señal, conviene marcarla con un indicador adicional. Imaginemos un formulario financiero donde el ingreso falta con más frecuencia entre trabajadores informales. Si reemplazamos esos faltantes por la media sin dejar rastro de la ausencia, el modelo verá ingresos "normales" allí donde en realidad había incertidumbre informativa asociada a un patrón social específico. A veces el indicador de faltante informa más que el valor imputado.
 
 ### 5.4 Tratamiento de outliers
 
-Con los outliers no existe una receta única porque no existe una única razón por la que aparecen. Si hay evidencia de error, puede corresponder corregir o eliminar. Si son pocos pero válidos y su peso distorsiona demasiado, puede ser razonable winsorizar o transformar. Si expresan un régimen raro pero importante, conviene preservarlos e incluso modelarlos con cuidado especial.
+Con los valores extremos no existe una receta universal porque tampoco existe una causa universal. Si hay evidencia de error de medición o de carga, corregir o excluir puede ser razonable. Si el valor es legítimo pero muy influyente, quizá convenga transformarlo o winsorizarlo. Si representa un régimen importante del fenómeno, preservarlo puede ser imprescindible.
 
-Los umbrales estadísticos, como z-score o reglas basadas en IQR, son útiles como detector inicial, no como juez final. La decisión correcta depende del dominio, del objetivo y del modelo. Un árbol tolera mejor ciertos extremos que una regresión lineal. Un sistema de detección de anomalías, precisamente, vive de los casos raros. Tratar bien los outliers exige pasar de la distancia al significado.
+Un árbol de decisión suele tolerar mejor algunos extremos que una regresión lineal. Un sistema de detección de anomalías, por definición, vive de lo raro. Por eso los umbrales estadísticos sirven como punto de partida, no como veredicto. El tratamiento correcto depende del fenómeno, del modelo y de la pregunta que motiva el análisis.
 
 ### 5.5 Encoding de variables categóricas
 
-Muchos modelos necesitan entradas numéricas y obligan a traducir categorías a números. Pero codificar no es un acto neutro. El **one-hot encoding** crea una columna binaria por categoría y suele ser la opción natural para variables nominales porque no impone orden. Su costo es el aumento de dimensionalidad cuando la cardinalidad es alta.
+Muchos modelos necesitan entradas numéricas, de modo que las categorías deben codificarse. Pero codificar no es traducir letras a números de manera inocente. Es imponer una geometría. Con one-hot encoding cada categoría nominal pasa a ocupar su propia dimensión y no se inventa un orden inexistente. El ordinal encoding solo tiene sentido cuando el orden es real y relevante. El target encoding puede ser muy potente en alta cardinalidad, aunque exige una disciplina experimental rigurosa porque utiliza información de la variable respuesta.
 
-El **ordinal encoding** solo tiene sentido cuando las categorías poseen un orden real. Aplicarlo sobre valores puramente nominales introduce distancias ficticias. El **target encoding** puede ser muy potente para cardinalidades elevadas porque resume cada categoría usando información del target, pero justamente por eso es altamente vulnerable a leakage y debe estimarse dentro de cada fold o con regularización cuidadosa. La regla general es simple: toda codificación impone una geometría. Lo importante es que esa geometría se parezca al problema y no a la comodidad de la herramienta.
+El problema de fondo es siempre el mismo. Si asignamos 1, 2, 3 y 4 a categorías nominales y luego alimentamos esos números a un modelo sensible a distancias, acabamos de introducir sin querer una estructura de cercanía que nunca estuvo en el fenómeno. La tabla quedó numérica, sí, pero a costa de contarle al modelo una historia geométrica falsa.
 
 ### 5.6 Escalado, normalización y sensibilidad del modelo
 
-La necesidad de escalar depende fuertemente de la familia de modelos. En métodos basados en distancias, como KNN, o en algoritmos optimizados por gradiente, como regresión regularizada, SVM o redes neuronales, la escala importa mucho. Una variable medida en miles puede dominar otra medida en décimas aunque sea menos relevante.
+La necesidad de escalar depende de la manera en que el modelo mira el espacio de datos. En métodos basados en distancias, como KNN, o en algoritmos optimizados por gradiente, como regresión regularizada, SVM o redes neuronales, la escala puede alterar fuertemente el aprendizaje. Una variable expresada en miles puede dominar a otra expresada en décimas, aunque sea menos relevante.
 
-La **estandarización** centra y escala por desvío estándar. La normalización min-max fuerza un rango determinado. El **robust scaling** usa mediana e IQR y resiste mejor los extremos. En cambio, árboles y ensambles de árboles suelen ser mucho menos sensibles a la escala porque comparan una variable consigo misma a través de umbrales. Responder "siempre hay que escalar" es una señal de aprendizaje mecánico; responder "depende del sesgo inductivo del modelo" es una señal de comprensión.
+La estandarización centra y divide por el desvío estándar. La normalización min-max fuerza un rango acotado. El robust scaling usa mediana e IQR y resiste mejor a los extremos. En cambio, los árboles suelen ser mucho menos sensibles a la escala porque comparan cada variable contra umbrales propios. La enseñanza importante aquí es que no hay una receta universal del tipo "siempre hay que escalar". Lo que hay es una pregunta geométrica: cómo percibe el modelo la proximidad, la magnitud y la orientación en el espacio representado.
 
 ### 5.7 Discretización y transformaciones de distribución
 
-Discretizar una variable continua significa reemplazarla por intervalos. A veces mejora interpretabilidad o robustez frente a ruido; otras veces destruye información útil. No debería hacerse por costumbre. Lo mismo vale para las transformaciones continuas. Una transformación logarítmica como \(\log(x+c)\) puede comprimir colas largas, reducir asimetría y acercar ciertas relaciones a la linealidad. Otras familias, como Box-Cox o Yeo-Johnson, buscan objetivos parecidos con más flexibilidad.
+Transformar una variable puede ser muy útil o muy destructivo. Discretizar una magnitud continua mejora a veces interpretabilidad y robustez, pero también puede borrar información fina. Una transformación logarítmica de la forma \(\log(x+c)\) comprime colas largas, reduce asimetría y a menudo vuelve más manejables relaciones que, en escala original, estaban dominadas por unos pocos valores enormes.
 
-Lo importante es no olvidar qué se transformó. Si se modela \(\log(y)\) y no \(y\), la interpretación de coeficientes, residuos y errores cambia. Transformar bien exige saber qué problema resuelve la transformación y qué nueva escala conceptual introduce.
+La clave está en que la transformación responda a un problema real. Si el target es extremadamente asimétrico y los errores grandes resultan desproporcionadamente influyentes, trabajar en escala logarítmica puede estabilizar el aprendizaje. Pero después la interpretación cambia. Los coeficientes, residuos y errores ya no viven en la escala original. Transformar por costumbre y olvidar ese cambio de significado es una forma muy elegante de equivocarse.
 
 ### 5.8 Feature engineering: donde el dominio se vuelve variable
 
-La ingeniería de variables es el lugar donde el conocimiento del dominio se traduce en estructura utilizable por un modelo. Construir razones como ingreso/cuota, interacciones como \(x_1x_2\), agregados temporales, indicadores de recencia o medidas resumidas de comportamiento suele ser mucho más valioso que cambiar de algoritmo sin cambiar la representación.
+La ingeniería de variables es el lugar donde el conocimiento del fenómeno se convierte en estructura utilizable por el modelo. Razones como ingreso sobre cuota, variables de recencia, recuentos en ventanas temporales, interacciones o indicadores de comportamiento condensan relaciones que el problema considera relevantes. A menudo esas construcciones dicen más que las columnas crudas de las que surgieron.
 
-Una buena feature no es un truco arbitrario. Es una hipótesis explícita sobre qué aspecto del fenómeno importa. En problemas temporales, por ejemplo, un lag o una media móvil no son adornos: condensan dependencia temporal. En texto, TF-IDF no es un simple conteo refinado: es una forma de destacar términos discriminativos. Quien entiende el problema suele mejorar primero la representación y solo después discute la familia de modelos.
+Una buena feature no es un truco brillante. Es una hipótesis explícita sobre qué aspecto del mundo importa. En mora, por ejemplo, el porcentaje del límite de crédito utilizado suele ser más informativo que saldo y límite por separado porque captura de inmediato una relación de tensión financiera. Quien entiende el fenómeno suele mejorar antes la representación que el algoritmo.
 
 ### 5.9 Selección de variables y multicolinealidad
 
-No todas las variables contribuyen de la misma manera. Algunas son casi irrelevantes, otras son redundantes y otras introducen inestabilidad. En modelos lineales, la **multicolinealidad** vuelve difíciles de interpretar los coeficientes porque pequeñas perturbaciones en los datos pueden alterar mucho su valor individual. El problema no es que el modelo "no pueda predecir", sino que la descomposición del efecto entre variables fuertemente correlacionadas se vuelve frágil.
+No todas las variables contribuyen de la misma manera. Algunas son irrelevantes. Otras son casi duplicados disfrazados. En modelos lineales, la multicolinealidad vuelve inestable la estimación porque el sistema tiene dificultades para repartir efecto entre columnas muy parecidas. Formalmente, cuando algunas columnas de \(X\) se aproximan a combinaciones lineales de otras, la matriz \(X^TX\) se vuelve mal condicionada y la estimación de los coeficientes se vuelve sensible a pequeñas perturbaciones.
 
-Herramientas como el VIF ayudan a diagnosticar esta situación, y técnicas como Ridge, Lasso o Elastic Net permiten mitigarla. En árboles el problema cambia de forma: la predicción puede mantenerse estable, pero las importancias de variables pueden volverse engañosas cuando varias columnas expresan casi la misma señal. Seleccionar variables no consiste solo en quedarse con menos, sino en quedarse con un conjunto que sostenga mejor el equilibrio entre información, estabilidad e interpretabilidad.
+En esas condiciones, la predicción puede mantenerse razonable mientras la interpretación de los coeficientes se desordena por completo. Herramientas como VIF, regularización o selección explícita de variables ayudan, pero la lección conceptual es anterior a cualquier técnica: más columnas no significan necesariamente más información. A veces significan la misma señal repetida varias veces con disfraces distintos.
 
 ### 5.10 Qué preprocesamiento necesita cada familia de modelos
 
-El preprocesamiento no existe separado del modelado. KNN y SVM suelen exigir escalado cuidadoso. Regresión lineal y logística lo agradecen especialmente cuando hay regularización. Árboles toleran bien heterogeneidad de escala y cierta no linealidad. PCA requiere centrado y, muchas veces, estandarización previa. Modelos de texto necesitan otra noción de representación. Redes neuronales suelen beneficiarse de entradas bien condicionadas.
+El preprocesamiento nunca existe en abstracto. Un KNN o una SVM suelen necesitar escalado cuidadoso porque viven de distancias y márgenes geométricos. La regresión lineal y la logística lo agradecen especialmente cuando aparece regularización. Los árboles toleran mejor escalas heterogéneas y relaciones no lineales sin demasiada intervención. PCA exige centrado y, con frecuencia, estandarización. El texto requiere otra idea de representación por completo.
 
-Una respuesta experta no repite recetas universales. Explica por qué un modelo es sensible a cierta transformación y otro no. En esa explicación aparece, en realidad, una comprensión más profunda del sesgo inductivo de cada familia de métodos.
+La respuesta madura no consiste en recitar una lista de recetas, sino en explicar por qué determinado modelo es sensible a cierta transformación y otro no. En ciencia de datos, el buen criterio suele reconocer relaciones de necesidad entre etapas que al principiante le parecen independientes.
 
 ## Parte IV. Evaluar sin autoengañarse
 
-El modelado se vuelve científicamente interesante solo cuando la evaluación protege contra la ilusión de haber aprendido lo que en realidad se memorizó. Esta parte se concentra en la cuestión más importante de toda la materia después de la formulación del problema: cómo diseñar un experimento honesto. Entrenar bien no demuestra nada si la validación está mal pensada.
+Una vez que el modelo aprende sobre la representación surge la pregunta más delicada de toda la materia: cómo distinguir si aprendió algo que generaliza o simplemente memorizó detalles accidentales de la muestra. La evaluación existe para responder esa pregunta con la mayor honestidad posible. Sin ella, las métricas de entrenamiento pueden convertirse en una de las formas más sofisticadas del autoengaño técnico.
 
 ## Capítulo 6. Generalización, validación y diseño experimental
 
 ### 6.1 El problema central: entrenar no es demostrar
 
-Que un modelo funcione bien sobre los datos con los que fue ajustado no demuestra que funcionará bien sobre datos nuevos. Esta obviedad aparente es el corazón de la disciplina. Si el modelo es demasiado rígido, puede no capturar estructura relevante. Si es demasiado flexible, puede aprender también el ruido accidental de la muestra.
+Que un modelo funcione bien sobre los datos con los que fue ajustado no prueba nada sobre su desempeño futuro. Esa frase merece ser repetida porque es una de las ideas más importantes del área. Un algoritmo flexible puede capturar estructura real o puede adaptarse a peculiaridades irrepetibles del conjunto de entrenamiento. A simple vista, ambos escenarios pueden lucir igual.
 
-El objetivo no es minimizar solo el error en entrenamiento, sino aproximar bien el riesgo fuera de muestra. Toda la maquinaria de particiones, validación cruzada, regularización y comparación de modelos existe para controlar la brecha entre desempeño observado y desempeño futuro. La evaluación no es un trámite posterior al modelado; es el marco que le da sentido.
+La evaluación no es entonces una ceremonia al final del pipeline. Es el marco que da sentido a todo lo anterior. Solo cuando diseñamos con cuidado una situación parecida al uso futuro podemos estimar si el comportamiento observado tiene chances de sostenerse fuera de muestra.
 
 ### 6.2 Conjuntos de entrenamiento, validación y prueba
 
-La división clásica distingue tres roles. El conjunto de **entrenamiento** ajusta parámetros. El de **validación** sirve para comparar alternativas e hiperparámetros. El de **prueba** estima el desempeño final en datos no usados para decidir. Aun cuando en la práctica entrenamiento y validación se organicen mediante cross-validation, esos roles conceptuales deben mantenerse separados.
+La separación clásica entre entrenamiento, validación y prueba refleja tres funciones distintas. El conjunto de entrenamiento se usa para ajustar parámetros. El de validación ayuda a comparar variantes, hiperparámetros o familias de modelos. El de prueba queda reservado para estimar el desempeño final en datos que no intervinieron en las decisiones anteriores.
 
-La idea de fondo es simple: si usamos un conjunto para tomar decisiones de modelado, deja de ser una medida externa del rendimiento. Quien evalúa honestamente protege su último conjunto realmente no visto como un recurso escaso, no como un espacio más para probar ideas.
+La lógica es simple, pero a menudo se viola sin advertirlo. En cuanto usamos un conjunto para decidir algo del modelo, ese conjunto deja de ser una referencia externa. Ya influyó en la construcción del sistema. Por eso el conjunto de prueba debe cuidarse como un recurso escaso. No es un adorno metodológico; es una barrera contra la inflación artificial de confianza.
 
 ### 6.3 Hold-out y validación cruzada
 
-El **hold-out** consiste en una partición simple entre entrenamiento y prueba. Es rápido, claro y a veces suficiente, pero su estimación puede depender demasiado del azar de una única división. La **validación cruzada k-fold** reduce ese problema al repartir el entrenamiento en \(k\) pliegues, entrenar sobre \(k-1\) y validar sobre el restante, repitiendo el proceso hasta recorrerlos todos.
+El esquema hold-out realiza una sola partición entre entrenamiento y prueba. Es rápido y claro, pero la estimación resultante puede depender demasiado del azar de esa división particular. La validación cruzada k-fold busca corregir ese problema repartiendo los datos en varios pliegues y repitiendo entrenamiento y validación sobre combinaciones distintas.
 
-Cuando las clases están desbalanceadas conviene estratificar para preservar proporciones. Cuando varias observaciones pertenecen a la misma entidad, conviene separar por grupos. La técnica concreta importa menos que el principio: el esquema de validación debe parecerse a la situación real de generalización que queremos evaluar.
+El principio que importa es más general que la técnica concreta. El esquema de validación debe parecerse a la situación real de generalización. Si hay clases desbalanceadas, conviene estratificar. Si hay grupos naturales, como múltiples observaciones por paciente, conviene separar por grupo. Si se mezclan en la evaluación casos que en la realidad no serían independientes, el diseño experimental ya empezó a contar una historia demasiado optimista.
 
 ### 6.4 Validación temporal y walk-forward
 
-En problemas donde el tiempo importa, mezclar observaciones al azar es conceptualmente incorrecto. El futuro no debe usarse para predecir el pasado. Por eso en series temporales y en contextos con deriva temporal conviene usar esquemas de validación que respeten la cronología, como ventanas crecientes o deslizantes.
+Cuando el tiempo participa del problema, particionar al azar puede destruir la lógica de uso. El futuro no debería ayudar a predecir el pasado. Por eso en series temporales o en contextos con deriva conviene respetar la cronología. La validación walk-forward hace exactamente eso: entrena sobre un bloque histórico y valida sobre un bloque posterior, repitiendo el proceso a medida que avanza la línea temporal.
 
-La validación **walk-forward** refleja bien esta lógica: se entrena en un bloque histórico y se valida en un bloque posterior, repitiendo el proceso a lo largo del tiempo. Si un modelo solo funciona cuando se rompe el orden temporal, no es que generaliza bien; es que la evaluación está mal diseñada.
+Si un modelo solo funciona cuando se mezclan pasado y futuro, el problema no es que el fenómeno sea difícil; el problema es que la evaluación fue irreconocible respecto del escenario real. Y una evaluación irreconocible produce una tranquilidad que no merece ser creída.
 
 ### 6.5 Nested cross-validation y comparación honesta de modelos
 
-Cuando el ajuste de hiperparámetros es intenso, incluso la validación cruzada puede volverse optimista si se utiliza al mismo tiempo para seleccionar y para evaluar. La **nested cross-validation** separa esas funciones mediante un bucle interno para tuning y un bucle externo para estimación más honesta del rendimiento.
+Cuando el ajuste de hiperparámetros es intenso, incluso la validación cruzada puede volverse optimista si se usa a la vez para elegir y para estimar el rendimiento. La nested cross-validation separa esas funciones mediante un bucle interno, dedicado a la selección, y un bucle externo, reservado para evaluar.
 
-No siempre es necesaria en la práctica cotidiana, pero su lógica es muy instructiva. Muestra que cada decisión guiada por los datos consume información y puede sesgar la evaluación hacia el optimismo. Cuanto más intensamente exploramos el espacio de modelos, más estricta debe ser nuestra disciplina experimental.
+En la práctica cotidiana no siempre será imprescindible, pero su lección conceptual es muy valiosa. Cada decisión guiada por los datos consume información. Si una misma evidencia sirve primero para elegir y luego para confirmar, nuestra confianza crece más rápido que el conocimiento real.
 
 ### 6.6 Overfitting, underfitting y curvas de aprendizaje
 
-El **underfitting** aparece cuando el modelo es demasiado simple o la representación demasiado pobre: el error es alto tanto en entrenamiento como en validación. El **overfitting** aparece cuando el modelo se adapta demasiado a peculiaridades del entrenamiento: el error de entrenamiento baja mucho, pero la validación no acompaña o empeora.
+El underfitting aparece cuando el modelo es demasiado rígido o la representación demasiado pobre. En ese caso el error queda alto tanto en entrenamiento como en validación. El overfitting aparece cuando el modelo se adapta en exceso a las particularidades del entrenamiento: allí el error de entrenamiento cae mucho, mientras la validación no acompaña o incluso empeora.
 
-Las curvas de aprendizaje ayudan a distinguir ambos escenarios. Si con más datos el error de validación cae y la brecha con entrenamiento disminuye, probablemente haya alta varianza. Si ambos errores permanecen altos, el problema puede ser alto sesgo, features pobres o un target mal formulado. Mirar un único score aislado dice poco; mirar cómo evoluciona el comportamiento con más información dice mucho más.
+Las curvas de aprendizaje permiten ver estos regímenes con más claridad que un score aislado. Si con más datos el error de validación disminuye y la brecha respecto del entrenamiento se reduce, probablemente estamos frente a un problema de alta varianza. Si ambos errores siguen altos, quizá falten mejores features, más flexibilidad o incluso una reformulación del target. Mirar cómo cambia el modelo cuando cambia la cantidad de información dice mucho más que quedarse con una única cifra final.
 
 ### 6.7 Sesgo y varianza como marco unificador
 
-En regresión con pérdida cuadrática, el error esperado puede descomponerse conceptualmente como
+En regresión con pérdida cuadrática suele escribirse la descomposición
 
 \[
-\mathbb{E}\left[(Y-\hat f(X))^2\right] = \text{Bias}^2 + \text{Variance} + \text{Noise}
+\mathbb{E}\left[(Y-\hat f(X))^2\right] = \text{Bias}^2 + \text{Variance} + \text{Noise}.
 \]
 
-El **sesgo** mide cuánto se aparta, en promedio, la predicción esperada del modelo respecto de la función verdadera. La **varianza** mide cuánto cambia la predicción si reentrenáramos el modelo sobre distintas muestras. El **ruido** representa aquello que ni siquiera un modelo ideal puede eliminar porque pertenece a la variabilidad irreducible del fenómeno.
+El sesgo mide cuánto se aparta, en promedio, la predicción esperada del modelo respecto de la función verdadera. La varianza mide cuánto cambiaría esa predicción si reentrenáramos con otras muestras. El ruido representa la parte irreducible del fenómeno, aquello que no depende de haber elegido mal el modelo, sino de la propia incertidumbre del sistema observado.
 
-La utilidad pedagógica de esta descomposición es enorme. Permite entender por qué modelos muy rígidos suelen fallar por sesgo y modelos muy flexibles por varianza. También explica por qué regularizar, agregar datos o construir mejores features puede mejorar la generalización por caminos diferentes.
+La utilidad de esta descomposición es conceptual. Ayuda a ver que distintas intervenciones corrigen problemas distintos. Aumentar flexibilidad puede reducir sesgo, pero aumentar varianza. Regularizar hace lo contrario. Agregar datos ayuda sobre todo contra la varianza. Mejorar la representación puede bajar ambas cosas a la vez. No hace falta recitar la fórmula para beneficiarse de esta forma de pensar; basta con entender qué clase de error estamos intentando mover.
 
 ### 6.8 Significancia estadística y relevancia práctica
 
-Una mejora pequeña en una métrica puede ser estadísticamente estable y, sin embargo, irrelevante en la práctica. También puede ocurrir lo contrario: un cambio modesto en el score promedio puede implicar una mejora importante en el segmento donde el negocio realmente se juega.
+Una mejora puede ser estadísticamente estable y, sin embargo, irrelevante para la decisión. También puede ocurrir lo contrario: una diferencia modesta en promedio puede volverse muy importante justo en el segmento donde el negocio o el riesgo realmente se juega. Por eso evaluar no es solo comparar medias o reportar intervalos. Es traducir diferencias a consecuencias.
 
-Por eso evaluar no es solo comparar medias. Es traducir esas diferencias a consecuencias: cuántos casos valiosos se recuperan, cuánto costo se evita, cuánto varía el resultado entre folds o períodos, cómo cambia entre subpoblaciones y qué tan estable es la ventaja del modelo ganador. El número importa; su interpretación importa todavía más.
+Cuántos casos adicionales se detectan. Cuánto costo se evita. Qué tan estable es la mejora entre folds, períodos o subgrupos. Si la ganancia aparece donde importa o se diluye precisamente en la zona crítica. La estadística ayuda a no sobrerreaccionar al azar; el criterio práctico ayuda a no confundir una diferencia medible con una diferencia valiosa.
 
 ## Capítulo 7. Métricas: cómo cuantificar el error sin perder el sentido del problema
 
 ### 7.1 Matriz de confusión y lectura estructural del error
 
-En clasificación binaria, la matriz de confusión organiza los resultados en cuatro celdas: verdaderos positivos, falsos positivos, verdaderos negativos y falsos negativos. Más que una tabla contable, es un mapa de cómo se distribuye el error. Permite distinguir si el modelo deja pasar demasiados positivos, si produce demasiadas falsas alarmas o si sus aciertos se concentran en la clase mayoritaria.
+En clasificación binaria, la matriz de confusión organiza el resultado en cuatro celdas: verdaderos positivos, falsos positivos, verdaderos negativos y falsos negativos. Esa tabla aparentemente simple es más instructiva que muchos scores agregados porque obliga a mirar la anatomía del error.
 
-Supongamos 1000 casos, de los cuales 50 son positivos reales. Si el modelo detecta 40, deja pasar 10 y marca erróneamente 60 negativos como positivos, entonces tiene \(TP=40\), \(FN=10\), \(FP=60\) y \(TN=890\). Esa simple descomposición ya muestra algo importante: el modelo recupera muchos positivos, pero a costa de bastantes falsas alarmas. Si eso es bueno o malo depende del problema, no de la tabla por sí sola.
+Supongamos mil casos, cincuenta positivos reales, cuarenta detectados correctamente, diez positivos que el sistema dejó pasar y sesenta negativos marcados erróneamente como positivos. En ese escenario, \(TP=40\), \(FN=10\), \(FP=60\) y \(TN=890\). Mucho antes de calcular métricas derivadas, ya podemos razonar. Vemos cuántos casos se recuperan, cuántas falsas alarmas se generan y qué tipo de costo podría dominar. La matriz de confusión importa porque devuelve estructura a lo que, de otro modo, se resumiría en un solo número.
 
 ### 7.2 Accuracy, precision, recall, especificidad y F1
 
-La **accuracy**
+La accuracy
 
 \[
 \text{Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
 \]
 
-mide la proporción total de aciertos. En el ejemplo anterior vale \(0.93\). Sin embargo, como la clase positiva representa solo el 5% de los casos, un clasificador que predijera siempre negativo obtendría \(0.95\) y sería inútil. Este contraste basta para entender por qué la accuracy puede ser engañosa.
-
-La **precision**
+mide la proporción total de aciertos. Puede ser útil, pero se vuelve engañosa cuando una clase domina. La precision
 
 \[
 \text{Precision} = \frac{TP}{TP + FP}
 \]
 
-responde a la pregunta: de todo lo que marqué como positivo, ¿cuánto era realmente positivo? El **recall**
+responde a una pregunta muy concreta: de todo lo que marqué como positivo, cuánto era realmente positivo. El recall
 
 \[
 \text{Recall} = \frac{TP}{TP + FN}
 \]
 
-responde a otra: de todos los positivos reales, ¿cuántos encontré? La **especificidad**
+invierte la mirada: de todos los positivos reales, cuántos encontré. La especificidad
 
 \[
 \text{Specificity} = \frac{TN}{TN + FP}
 \]
 
-mide la capacidad de reconocer negativos. El **F1-score**
+mide la capacidad de reconocer negativos. Y el F1-score
 
 \[
 F_1 = 2\cdot \frac{\text{Precision}\cdot\text{Recall}}{\text{Precision}+\text{Recall}}
 \]
 
-combina precisión y recall de forma exigente. Si una es muy baja, F1 también lo será. Lo valioso no es memorizar fórmulas, sino entender qué pregunta operativa responde cada una.
+intenta equilibrar precisión y recall castigando situaciones en las que una de las dos es muy baja.
+
+Más que repetir fórmulas, conviene recordar la pregunta humana que cada una responde. Si la clase positiva es muy rara, accuracy puede ser impecable aun cuando el modelo ignore casi todos los casos importantes. En cambio, recall y precision obligan a mirar más de cerca dónde se está pagando el error.
 
 ### 7.3 Curvas ROC, AUC y curvas Precision-Recall
 
-Muchos modelos no devuelven directamente una clase, sino un score o una probabilidad. Al variar el umbral de decisión cambian las tasas de verdaderos y falsos positivos. La curva **ROC** resume ese comportamiento y el AUC-ROC captura la capacidad global de discriminación entre positivos y negativos.
+Muchos modelos no entregan una clase, sino un score o una probabilidad. Al variar el umbral, cambian las tasas de verdaderos y falsos positivos. La curva ROC resume justamente esa familia de compromisos, y el AUC-ROC mide la capacidad global del modelo para discriminar entre clases a lo largo de todos los umbrales posibles.
 
-La curva **Precision-Recall** resulta especialmente informativa cuando la clase positiva es rara. En esos contextos puede ocurrir que un modelo tenga un AUC-ROC aceptable y, sin embargo, una precisión muy pobre en los rangos de recall que realmente interesan. Elegir entre ROC y PR no es un detalle gráfico. Es decidir qué aspecto del comportamiento del modelo queremos hacer visible.
+La curva Precision-Recall pone el foco en otro aspecto: cuánta precisión conserva el modelo a medida que aumenta la recuperación de positivos. En contextos con clase rara suele ser más informativa que la ROC, porque allí un modelo puede mantener un AUC-ROC razonable y, sin embargo, tener una precision muy pobre justo en la región que operativamente interesa. Elegir entre ROC y PR no es una cuestión estética. Es decidir qué tipo de degradación queremos hacer visible.
 
 ### 7.4 Umbral de decisión y calibración
 
-Usar 0.5 como umbral por costumbre es una práctica demasiado extendida y casi nunca está justificada. El umbral correcto depende del costo relativo de los errores, de la capacidad operativa para revisar casos y del objetivo del sistema. En screening médico puede convenir un umbral bajo. En auditorías costosas, uno más alto.
+Usar 0.5 como umbral por costumbre rara vez está justificado. El umbral correcto depende del costo relativo de los errores, del volumen de casos que el sistema puede procesar y del tipo de política operativa que se quiere sostener. Un modelo probabilístico bien usado no obliga a cortar siempre en el mismo punto; ofrece información para elegir un corte razonable.
 
-Además de discriminar bien, un modelo puede necesitar estar **calibrado**. Decimos que está bien calibrado si entre los casos a los que asigna probabilidad 0.8 el evento ocurre, aproximadamente, el 80% de las veces. Un modelo puede rankear correctamente y, sin embargo, estar mal calibrado. Cuando la salida se interpreta como probabilidad y no solo como orden, esa diferencia es crucial.
+Además, discriminar bien no es lo mismo que estar calibrado. Un modelo está bien calibrado cuando, entre los casos a los que asigna probabilidad 0.8, el evento ocurre aproximadamente el 80% de las veces. Un sistema puede ordenar correctamente los casos de mayor a menor riesgo y, al mismo tiempo, sobrestimar o subestimar sistemáticamente esas probabilidades. Si la salida se usará como score de ranking, tal vez eso no sea grave. Si la salida se interpretará como probabilidad operativa, la calibración se vuelve central.
 
 ### 7.5 Métricas de regresión
 
-En regresión interesa medir distancias entre valor real y valor predicho. El **MAE**
+En regresión el error se mide como distancia entre el valor real y la predicción. El MAE
 
 \[
 MAE = \frac{1}{n}\sum_{i=1}^{n}|y_i - \hat y_i|
 \]
 
-tiene la ventaja de expresarse en las mismas unidades del target y de ser menos sensible a errores extremos. El **MSE**
+tiene la ventaja de mantenerse en las mismas unidades del target y no exagerar tanto el peso de los errores extremos. El MSE
 
 \[
 MSE = \frac{1}{n}\sum_{i=1}^{n}(y_i-\hat y_i)^2
 \]
 
-y su raíz, el **RMSE**, penalizan más fuertemente los errores grandes. Esa penalización puede ser deseable o no, según el costo real del problema.
-
-El coeficiente
+y su raíz, el RMSE, penalizan con mayor dureza los errores grandes. El coeficiente
 
 \[
 R^2 = 1 - \frac{\sum_{i=1}^{n}(y_i-\hat y_i)^2}{\sum_{i=1}^{n}(y_i-\bar y)^2}
 \]
 
-indica cuánto mejora el modelo respecto de predecir siempre la media. Pero no debe leerse como una medida universal de bondad. Un \(R^2\) alto puede convivir con errores absolutos importantes, y un \(R^2\) moderado puede ser razonable en fenómenos intrínsecamente ruidosos. Ninguna métrica de regresión se interpreta al margen de la escala del problema.
+indica cuánto mejora el modelo respecto de predecir siempre la media.
+
+Cada una de estas métricas cuenta una historia distinta. MAE es más fiel a un costo lineal del error. RMSE refleja mejor escenarios donde los errores grandes son especialmente caros. \(R^2\) resume ganancia relativa respecto de un baseline simple, pero no garantiza que el error absoluto sea aceptable. Dos modelos con el mismo \(R^2\) pueden ser muy distintos desde el punto de vista operativo.
 
 ### 7.6 Métricas internas y externas en clustering
 
-Como en clustering no existe target observado durante el ajuste, la evaluación exige otro tipo de criterios. El índice **silhouette** compara, para cada observación, qué tan cerca está de su propio cluster respecto del cluster alternativo más próximo:
+Cuando no hay etiquetas observadas, la evaluación deja de parecerse a la de clasificación o regresión. El índice silhouette,
 
 \[
-s(i)=\frac{b(i)-a(i)}{\max\{a(i),b(i)\}}
+s(i)=\frac{b(i)-a(i)}{\max\{a(i),b(i)\}},
 \]
 
-donde \(a(i)\) es la distancia promedio al propio grupo y \(b(i)\) la mínima distancia promedio a otro grupo. Valores altos sugieren buena asignación; valores cercanos a cero, fronteras difusas.
+compara qué tan cerca está un punto de su propio cluster respecto del cluster alternativo más próximo. Valores altos sugieren buena cohesión y separación.
 
-También pueden usarse índices como Davies-Bouldin o, si existen etiquetas externas, medidas de acuerdo como ARI o NMI. Pero ninguna métrica interna reemplaza la interpretación sustantiva. Un clustering puede optimizar silhouette y seguir siendo irrelevante para la acción o conceptualmente vacío si la representación de partida era mala.
+Existen también índices como Davies-Bouldin y, cuando hay etiquetas externas disponibles para comparar, medidas como ARI o NMI. Pero ninguna métrica interna reemplaza la interpretación sustantiva. Un clustering puede lucir impecable según silhouette y seguir siendo inútil si la representación inicial ya había borrado la estructura relevante o si los grupos no sostienen decisiones diferentes.
 
 ### 7.7 Elegir la métrica correcta
 
-La mejor métrica no es la más famosa, sino la que castiga los errores que verdaderamente importan. Si la clase positiva es rara y valiosa, accuracy no alcanzará. Si importa la calidad probabilística, la calibración debe entrar en escena. Si el sistema opera sobre un cupo fijo de revisión, quizá convenga medir precisión en top-k o recall en un tramo particular del ranking.
+La mejor métrica no es la más difundida, sino la que mejor refleja la clase de error que de verdad importa. En un problema con positivos raros y valiosos, accuracy puede ser un espejismo. Si la prioridad está en la calidad probabilística, la calibración gana peso. Si solo interesan los primeros lugares de un ranking, quizá convenga mirar precisión en top-k antes que un score global.
 
-La madurez técnica se reconoce aquí con facilidad. No se trata de recitar definiciones, sino de justificar por qué una métrica representa mejor que otra el problema que queremos resolver.
+La madurez técnica se hace visible aquí. No en saber muchas métricas, sino en poder justificar por qué una de ellas traduce mejor que otra el costo real del error y la forma concreta de la decisión.
 
 ## Parte V. Modelos supervisados fundamentales
 
-Con el problema bien formulado, los datos leídos críticamente, la representación construida y la evaluación diseñada, recién ahora tiene sentido estudiar modelos concretos. Esta parte reúne las familias supervisadas que suelen funcionar como columna vertebral conceptual de la materia. No interesa solo saber cómo operan, sino qué supuestos introducen, qué sesgo inductivo traen y qué tipo de interpretación permiten.
+Recién después de formular bien el problema, leer el dato, construir la representación y diseñar la evaluación tiene pleno sentido estudiar modelos concretos. El objetivo de esta parte no es acumular recetas, sino entender distintas formas de imponer estructura sobre un mismo problema.
 
 ## Capítulo 8. Regresión lineal: una base que sigue siendo esencial
 
 ### 8.1 Por qué sigue importando un modelo lineal
 
-La regresión lineal suele presentarse como el modelo "básico", y esa etiqueta la perjudica. En realidad, es una de las herramientas más formativas de toda la disciplina. Permite ver con claridad la relación entre una hipótesis estructural, una función de pérdida, un método de estimación y un criterio de interpretación. Además, sigue siendo muy útil cuando importa la explicabilidad, cuando la relación es aproximadamente lineal o cuando necesitamos un baseline fuerte y honesto.
+La regresión lineal conserva un valor extraordinario porque hace visibles, con muy poca niebla, las conexiones entre hipótesis, pérdida, estimación e interpretación. Además sigue siendo útil en muchos escenarios donde importa la explicabilidad, donde la relación es aproximadamente aditiva o donde se necesita un baseline fuerte y legible.
 
-El modelo clásico para una respuesta continua es
+El modelo clásico para una respuesta continua se escribe
 
 \[
-y = \beta_0 + \beta_1x_1 + \cdots + \beta_px_p + \varepsilon
+y = \beta_0 + \beta_1x_1 + \cdots + \beta_px_p + \varepsilon,
 \]
 
-donde \(\beta_0\) es la ordenada al origen, los \(\beta_j\) son coeficientes y \(\varepsilon\) resume aquello que el modelo no explica. La palabra "lineal" debe leerse con cuidado: el modelo es lineal en los parámetros. Podemos incluir \(x^2\), \(\log x\) o interacciones y seguir dentro de la familia lineal mientras la combinación siga siendo lineal en \(\beta\).
+donde \(\beta_0\) es el intercepto, los \(\beta_j\) son coeficientes y \(\varepsilon\) representa aquello que el modelo no consigue explicar. Que el modelo sea lineal significa que es lineal en los parámetros. Podemos incluir \(x^2\), interacciones o \(\log x\) y seguir en la familia lineal mientras la combinación permanezca lineal en \(\beta\).
 
 ### 8.2 Mínimos cuadrados ordinarios
 
-Si escribimos el modelo en forma matricial,
+El problema que resuelve la regresión lineal puede plantearse de una manera casi geométrica: entre todos los planos o hiperplanos posibles, queremos el que deja la respuesta observada lo más cerca posible. En forma matricial escribimos
 
 \[
 y = X\beta + \varepsilon
 \]
 
-la estimación por mínimos cuadrados ordinarios busca
+y estimamos \(\beta\) resolviendo
 
 \[
-\hat\beta = \arg\min_\beta \|y - X\beta\|_2^2
+\hat\beta = \arg\min_\beta \|y - X\beta\|_2^2.
 \]
 
-Es decir, el vector de coeficientes que hace mínima la suma de cuadrados de los residuos. La formulación es importante porque deja ver qué se está optimizando exactamente.
+Es decir, buscamos los coeficientes que minimizan la suma de cuadrados de los residuos.
 
-Si desarrollamos
+Al derivar esa expresión surgen las ecuaciones normales
 
 \[
-S(\beta) = (y - X\beta)^T(y - X\beta)
+X^TX\hat\beta = X^Ty,
 \]
 
-y derivamos respecto de \(\beta\), obtenemos las ecuaciones normales:
+y, cuando \(X^TX\) es invertible,
 
 \[
-X^TX\hat\beta = X^Ty
+\hat\beta = (X^TX)^{-1}X^Ty.
 \]
 
-Cuando \(X^TX\) es invertible,
-
-\[
-\hat\beta = (X^TX)^{-1}X^Ty
-\]
-
-Cada símbolo tiene contenido. \(X^TX\) resume la geometría y correlación de las features. \(X^Ty\) resume su alineación lineal con la respuesta. La solución no es una fórmula para memorizar, sino una lectura compacta de cómo se equilibran esas relaciones.
+Estas fórmulas no son solo álgebra. Dicen algo intuitivo. \(X^TX\) resume cómo se relacionan las variables entre sí. \(X^Ty\) resume cómo se alinean con la respuesta. Resolver el sistema es encontrar el compromiso lineal que mejor aproxima esa relación en el sentido de la pérdida cuadrática.
 
 ### 8.3 Interpretación geométrica
 
-La solución de mínimos cuadrados puede leerse como la proyección ortogonal del vector \(y\) sobre el subespacio generado por las columnas de \(X\). El modelo lineal busca, en ese subespacio, la aproximación más cercana posible a la respuesta observada.
+La lectura geométrica hace todavía más transparente el asunto. La solución de mínimos cuadrados puede verse como la proyección ortogonal del vector \(y\) sobre el subespacio generado por las columnas de \(X\). El modelo busca, entre todas las combinaciones lineales posibles de las features, aquella que queda más cerca de la respuesta observada.
 
-Esta lectura geométrica explica por qué la colinealidad es problemática. Si las columnas de \(X\) son casi linealmente dependientes, el subespacio queda mal condicionado y pequeñas variaciones en los datos producen grandes cambios en la solución. La geometría, en este caso, no es una metáfora: es el problema mismo.
+Eso explica de inmediato por qué la colinealidad genera problemas. Si varias columnas apuntan casi en la misma dirección, el subespacio queda mal condicionado y el reparto de efecto entre variables se vuelve inestable. La geometría muestra con claridad algo que, leído solo en la fórmula, podría parecer una rareza algebraica.
 
 ### 8.4 Cómo interpretar los coeficientes
 
-Bajo una especificación razonable, \(\beta_j\) se interpreta como el cambio esperado en \(y\) ante un aumento de una unidad en \(x_j\), manteniendo constantes las demás variables. Esa última cláusula es decisiva. El coeficiente nunca describe el efecto bruto de una variable "por sí sola", sino su contribución dentro del modelo y condicionada al resto de las covariables.
+Bajo una especificación razonable, el coeficiente \(\beta_j\) indica cuánto cambia la respuesta esperada cuando \(x_j\) aumenta una unidad, manteniendo constantes las demás variables. Esa frase exige mucho más cuidado del que parece. No describe un efecto puro del mundo; describe una relación condicional dentro del modelo.
 
-Las transformaciones cambian la interpretación. Si el target está en logaritmos, los coeficientes se leen aproximadamente como cambios porcentuales. Si una variable fue estandarizada, el coeficiente corresponde a un cambio de un desvío estándar, no de una unidad original. Y, en todos los casos, la interpretación asociativa no debe confundirse con interpretación causal.
+Si, por ejemplo, \(\beta_{\text{horas}} = 2\) en un modelo de notas y horas de estudio, la lectura es que, manteniendo constantes las otras variables incluidas, una hora adicional se asocia con dos puntos más en la nota esperada. Eso no significa que forzar causalmente una hora extra produzca exactamente ese aumento. La interpretación es asociativa, no intervencional.
+
+Además, las transformaciones cambian la lectura. Si el target se modeló en logaritmos, los coeficientes suelen interpretarse en términos porcentuales aproximados. Si una variable fue estandarizada, una unidad ya no es una unidad del fenómeno, sino un desvío estándar. Interpretar bien exige recordar siempre en qué escala vive el modelo.
 
 ### 8.5 Supuestos clásicos y qué significa violarlos
 
-Los supuestos clásicos del modelo lineal suelen enumerarse de memoria: linealidad en parámetros, exogeneidad, independencia de errores, homocedasticidad, ausencia de multicolinealidad severa y normalidad de errores para ciertos resultados inferenciales. Lo importante no es recitar la lista, sino comprender qué se rompe cuando uno falla.
+Los supuestos clásicos de la regresión lineal no deberían estudiarse como una lista ceremonial. Cada uno protege una parte de la interpretación. Si la relación relevante no es aproximadamente lineal y no incorporamos transformaciones o términos adicionales, el modelo queda mal especificado. Si hay heterocedasticidad, algunos resultados inferenciales pierden confiabilidad. Si los errores están correlacionados en el tiempo o por grupos, la evaluación puede resultar demasiado optimista. Si la multicolinealidad es severa, los coeficientes se vuelven inestables.
 
-Si la relación relevante no es aproximadamente lineal y no fue enriquecida con transformaciones, el modelo queda mal especificado. Si la varianza del error cambia sistemáticamente, los errores estándar e intervalos pueden volverse poco confiables. Si hay dependencia temporal o por grupo, el optimismo evaluativo aumenta. Si hay colinealidad severa, los coeficientes se vuelven inestables. Entender el rol de cada supuesto vale más que repetirlo.
+La mejor forma de recordarlos es preguntarse qué se rompe cuando fallan. Un supuesto no es una superstición estadística; es una condición bajo la cual ciertas lecturas del modelo dejan de ser razonables.
 
 ### 8.6 Residuos, diagnóstico y límites del modelo
 
-El residuo \(e_i = y_i - \hat y_i\) resume el error del modelo en cada observación. Analizar residuos permite ver si quedó estructura sin modelar. Un patrón curvo en residuos contra ajustados sugiere no linealidad remanente. Un "abanico" puede indicar heterocedasticidad. Algunos puntos con alta influencia pueden alterar desproporcionadamente la estimación.
+El residuo \(e_i = y_i - \hat y_i\) condensa el error del modelo para una observación. Mirar residuos es mirar qué parte del fenómeno quedó afuera. Un patrón curvo en el gráfico de residuos sugiere que el modelo lineal dejó no linealidad sin capturar. Un abanico puede insinuar heterocedasticidad. Unos pocos puntos muy influyentes pueden estar moviendo toda la estimación.
 
-La regresión lineal no fracasa por ser simple, sino cuando se le exige representar una estructura que no cabe bien en ella. Su gran virtud es justamente que deja visibles sus límites. Por eso sigue siendo una herramienta de pensamiento, no solo un modelo de uso.
+Una de las grandes virtudes pedagógicas de la regresión lineal es que expone con nitidez sus propias limitaciones. No es solo un modelo útil; es también una escuela de pensamiento sobre lo que significa ajustar, diagnosticar y reconocer cuándo la forma elegida ya no alcanza.
 
 ### 8.7 Regularización: Ridge, Lasso y Elastic Net
 
-Cuando hay muchas variables, colinealidad o riesgo de sobreajuste, conviene agregar penalizaciones a la función objetivo. En **Ridge** se minimiza
+Cuando hay muchas variables, colinealidad o riesgo de sobreajuste, conviene penalizar complejidad. En Ridge se minimiza
 
 \[
-\|y-X\beta\|_2^2 + \lambda\|\beta\|_2^2
+\|y-X\beta\|_2^2 + \lambda\|\beta\|_2^2.
 \]
 
-lo que contrae suavemente los coeficientes. En **Lasso** se usa
+En Lasso se usa
 
 \[
-\|y-X\beta\|_2^2 + \lambda\|\beta\|_1
+\|y-X\beta\|_2^2 + \lambda\|\beta\|_1,
 \]
 
-y esa penalización puede llevar algunos coeficientes exactamente a cero. **Elastic Net** combina ambas ideas y suele ser útil cuando hay grupos de variables correlacionadas.
+y en Elastic Net se combinan ambas penalizaciones.
 
-La intuición general es valiosa: aceptamos introducir algo de sesgo para reducir varianza y ganar generalización. La regularización no es un truco numérico, sino una forma explícita de controlar complejidad.
+La intuición es más importante que la expresión formal. Aceptamos introducir un poco de sesgo para reducir varianza y ganar estabilidad. Ridge tiende a encoger coeficientes sin anularlos. Lasso puede llevar algunos exactamente a cero y, por eso, ayuda también como mecanismo de selección. En todos los casos la regularización expresa una idea general: preferimos modelos que expliquen bien sin apoyarse en una complejidad excesivamente frágil.
 
 ### 8.8 Cuándo conviene usar regresión lineal
 
-La regresión lineal conviene cuando la interpretabilidad importa, cuando la relación es aproximadamente lineal o puede linearizarse con transformaciones razonables, cuando hace falta un baseline sólido y cuando la complejidad del problema no justifica modelos más opacos. También es muy útil como referencia conceptual frente a técnicas más flexibles.
+La regresión lineal conviene cuando importa la interpretabilidad, cuando una relación aditiva resulta razonable, cuando se necesita un baseline fuerte o cuando el costo de un modelo más opaco no está justificado. También conviene como herramienta intelectual, porque obliga a pensar con cuidado en escala, supuestos, residuos y causalidad mal entendida.
 
-Compararla con modelos más complejos exige criterio. Un modelo lineal puede perder frente a interacciones y no linealidades fuertes, pero gana en estabilidad, transparencia y facilidad de comunicación. La respuesta madura no opone "simple" a "potente"; analiza el tipo de estructura que cada familia puede capturar y el costo de perder interpretabilidad.
+No es un modelo viejo superado por otros más modernos. Es una pieza fundamental de alfabetización estadística y, en muchos contextos, una solución plenamente competitiva.
 
 ## Capítulo 9. Regresión logística: probabilidad para decisiones binarias
 
 ### 9.1 Por qué no alcanza la regresión lineal para clasificar
 
-Si el target es binario, podría tentarnos ajustar una recta y luego umbralizar la salida. El problema es doble. Por un lado, la predicción lineal no está restringida al intervalo \([0,1]\). Por otro, la relación entre covariables y probabilidad rara vez es adecuadamente representada como una función lineal en la escala original.
+Cuando el target es binario, ajustar una recta y luego aplicar un umbral parece una salida tentadora. El problema es que la recta no está obligada a permanecer entre 0 y 1 y, además, la relación entre covariables y probabilidad rara vez es lineal en la escala original. La regresión logística resuelve esa dificultad modelando
 
-La regresión logística resuelve esto modelando la probabilidad de la clase positiva mediante la sigmoide
+\[
+P(Y=1 \mid X=x)=\sigma(\beta_0+\beta^Tx),
+\]
+
+donde
 
 \[
 \sigma(z)=\frac{1}{1+e^{-z}}
 \]
 
-con
+es la función sigmoide.
 
-\[
-z = \beta_0 + \beta^Tx
-\]
-
-De este modo,
-
-\[
-P(Y=1 \mid X=x)=\sigma(\beta_0+\beta^Tx)
-\]
-
-La salida queda naturalmente entre 0 y 1, y la relación lineal se desplaza a una escala más adecuada.
+La magia aquí no es misteriosa. La combinación lineal sigue existiendo, pero ahora pasa por una función que la convierte en probabilidad válida. Eso permite conservar buena parte de la interpretabilidad lineal sin violentar la naturaleza binaria del problema.
 
 ### 9.2 Odds y logit
 
-La logística se entiende mejor a través de los **odds**:
+La intuición profunda de la logística aparece cuando dejamos de mirar la probabilidad y pasamos a mirar los odds
 
 \[
-\text{odds}=\frac{p}{1-p}
+\text{odds}=\frac{p}{1-p}.
 \]
 
-Si tomamos logaritmos obtenemos el **logit**:
+Si tomamos logaritmos obtenemos el logit:
 
 \[
-\log\left(\frac{p}{1-p}\right)=\beta_0+\beta^Tx
+\log\left(\frac{p}{1-p}\right)=\beta_0+\beta^Tx.
 \]
 
-Esta ecuación encierra la idea central del modelo: lo que es lineal no es la probabilidad, sino el logaritmo de sus odds. Muchas malas interpretaciones nacen de olvidar este punto y leer los coeficientes como si produjeran cambios lineales directos en probabilidad.
+La linealidad, entonces, no vive en la probabilidad sino en el log-odds. Eso importa mucho porque evita una interpretación ingenua. El modelo no dice que cada unidad adicional en una variable aumenta la probabilidad en una cantidad fija. Dice que cambia linealmente el log-odds, y esa modificación se traduce a la probabilidad de manera no lineal.
 
 ### 9.3 Estimación por máxima verosimilitud
 
-Si cada \(Y_i\) sigue una Bernoulli con probabilidad \(p_i\), la verosimilitud del conjunto de observaciones es
+Si cada \(Y_i\) se modela como una Bernoulli con probabilidad \(p_i\), la verosimilitud conjunta es
 
 \[
-\mathcal{L}(\beta) = \prod_{i=1}^{n} p_i^{y_i}(1-p_i)^{1-y_i}
+\mathcal{L}(\beta) = \prod_{i=1}^{n} p_i^{y_i}(1-p_i)^{1-y_i}.
 \]
 
-y su logaritmo es
+Tomar logaritmos simplifica el cálculo y lleva a
 
 \[
-\ell(\beta)=\sum_{i=1}^{n}\left[y_i\log p_i + (1-y_i)\log(1-p_i)\right]
+\ell(\beta)=\sum_{i=1}^{n}\left[y_i\log p_i + (1-y_i)\log(1-p_i)\right].
 \]
 
-Maximizar esta expresión equivale a minimizar la log-loss. A diferencia de la regresión lineal, no existe una solución cerrada simple como las ecuaciones normales, y por eso se usan métodos iterativos de optimización. Lo importante pedagógicamente es entender la lógica: elegimos los parámetros que vuelven más plausible la muestra observada bajo el modelo.
+Maximizar esta expresión equivale a minimizar la log-loss. La lectura intuitiva es clara: elegimos los parámetros que vuelven más plausible la muestra observada bajo el modelo. La logística no surge de una costumbre computacional, sino de una forma muy natural de ajustar probabilidades a datos binarios.
 
 ### 9.4 Cómo interpretar un coeficiente logístico
 
-Si \(x_j\) aumenta en una unidad, los log-odds cambian en \(\beta_j\). Una lectura más intuitiva surge al exponenciar:
+Si \(x_j\) aumenta una unidad, el log-odds cambia en \(\beta_j\). Al exponenciar ese coeficiente obtenemos
 
 \[
-e^{\beta_j}
+e^{\beta_j},
 \]
 
-Ese valor es el factor por el cual se multiplican los odds cuando \(x_j\) aumenta una unidad, manteniendo constantes las demás variables. Si \(e^{\beta_j}=1.5\), los odds aumentan un 50%. Eso no significa que la probabilidad aumente 50 puntos porcentuales. El cambio en probabilidad depende del nivel base en el que estemos operando.
+que indica por qué factor se multiplican los odds cuando \(x_j\) aumenta una unidad, manteniendo constantes las demás variables. Si \(e^{\beta_j}=1.5\), los odds aumentan un 50%. Esa frase no equivale a decir que la probabilidad sube cincuenta puntos porcentuales. El cambio en la probabilidad depende del punto de partida. Cerca de 0.5 la variación puede ser notable; cerca de 0 o de 1, mucho menor.
 
-Comprender esa diferencia es clave. La logística es interpretable, pero no admite una lectura ingenua lineal sobre la probabilidad.
+Entender esta diferencia marca una frontera clara entre repetir una interpretación estándar y comprender realmente qué está diciendo el modelo.
 
 ### 9.5 Umbral, desbalance y decisión
 
-La regresión logística entrega probabilidades. Convertirlas en clases requiere un umbral, y en problemas desbalanceados usar 0.5 por defecto suele ser una mala decisión. El umbral debe discutirse a la luz del costo de error, del volumen de casos que el sistema puede procesar y de la política operativa que seguirá al modelo.
+La regresión logística produce probabilidades. Convertirlas en clases exige elegir un umbral, y usar 0.5 por simple reflejo puede ser una mala idea en problemas desbalanceados o con costos asimétricos. Allí aparece una de las grandes virtudes de la logística: obliga a separar tres capas que suelen confundirse, la estimación de probabilidad, la regla de clasificación y la decisión operativa.
 
-Por esa misma razón, la logística suele ser un excelente baseline. Es rápida, interpretable, probabilística y estable. En muchos problemas tabulares, una logística regularizada y bien calibrada ofrece una referencia sorprendentemente difícil de superar honestamente.
+Esa separación es conceptualmente saludable. Permite discutir calibración sin mezclarla con ranking, y costos operativos sin mezclarlo todo con la función de entrenamiento. Como baseline, la logística sigue siendo excelente precisamente porque ordena bien estas ideas.
 
 ### 9.6 Regularización y calibración
 
-La logística admite penalizaciones L1 y L2 del mismo modo que la regresión lineal, lo que ayuda frente a alta dimensionalidad, colinealidad y sobreajuste. Pero además conviene recordar que buena discriminación no implica buena calibración. Dos modelos pueden ordenar casos de manera parecida y, aun así, diferir mucho en la calidad de las probabilidades que emiten.
+La logística admite penalizaciones L1 y L2 igual que la regresión lineal, lo que resulta muy útil frente a alta dimensionalidad, colinealidad y riesgo de sobreajuste. Pero además introduce con mucha nitidez otra cuestión: un modelo puede discriminar bien y, sin embargo, estar mal calibrado.
 
-En problemas de riesgo esa diferencia es central. A veces el orden basta; otras veces se necesita una probabilidad razonablemente interpretable para fijar políticas, precios o niveles de intervención. La calibración no es un lujo estadístico, sino una propiedad funcional del modelo.
+En problemas donde la probabilidad se interpreta directamente, como seguros, salud o riesgo, esa distinción es decisiva. A veces basta con saber quién está antes y quién después en un ranking. Otras veces necesitamos que un 0.2 se parezca de verdad a una probabilidad del 20%. La logística permite ver con claridad que ambas exigencias no son equivalentes.
 
 ### 9.7 Cuándo falla la intuición lineal
 
-Muchos estudiantes piensan la logística como "una lineal para clasificar". La intuición ayuda al comienzo, pero si se la toma literalmente conduce a errores. La linealidad vive en el espacio del logit, no en la probabilidad. Por eso el efecto marginal de una variable sobre \(P(Y=1)\) depende del punto del espacio en que se evalúe.
+Pensar la logística como una versión lineal para clasificación ayuda al comienzo, pero se vuelve engañoso si se toma demasiado literalmente. La probabilidad no cambia linealmente con la covariable. Los efectos marginales dependen de la zona del espacio donde se evalúan. Un mismo cambio en una feature no tiene el mismo impacto cuando el caso ya es muy probable que cuando está cerca del umbral.
 
-Ese matiz marca la diferencia entre usar el modelo como receta y entenderlo de verdad. La logística es simple, sí, pero no trivial.
+Comprender esta curvatura evita muchos malentendidos. La logística no es solo una receta útil; es una invitación a pensar cómo una relación aparentemente simple cambia de significado cuando lo que está en juego es una probabilidad.
 
 ## Capítulo 10. KNN, Naive Bayes y SVM: tres lógicas distintas de aprendizaje
 
 ### 10.1 K-Nearest Neighbors: aprender por vecindad
 
-KNN parte de una idea intuitiva y potente: casos parecidos deberían comportarse de manera parecida. Para predecir un nuevo punto, el algoritmo busca los \(k\) vecinos más cercanos en el espacio de features y decide a partir de ellos. En clasificación suele usar voto mayoritario; en regresión, promedio de las respuestas vecinas.
+KNN parte de una intuición muy natural: casos parecidos deberían tener respuestas parecidas. Cuando llega una observación nueva, el algoritmo busca los \(k\) vecinos más cercanos y decide a partir de ellos, ya sea por voto en clasificación o por promedio en regresión.
 
-La simplicidad es engañosa. Todo depende de cómo se defina "cercanía". Una distancia euclídea
+La dificultad real está escondida en una palabra aparentemente obvia: parecido. Si usamos distancia euclídea,
 
 \[
-d(x,x')=\sqrt{\sum_{j=1}^{p}(x_j-x'_j)^2}
+d(x,x')=\sqrt{\sum_{j=1}^{p}(x_j-x'_j)^2},
 \]
 
-puede ser razonable en algunos problemas y pésima en otros. Si las variables no están escaladas o si abundan dimensiones irrelevantes, la vecindad pierde sentido. El parámetro \(k\) controla además un compromiso clásico: valores bajos adaptan mejor estructuras finas pero aumentan varianza; valores altos suavizan el modelo y aumentan sesgo.
+las variables mal escaladas o irrelevantes pueden dominar por completo la noción de cercanía. Además, \(k\) regula un compromiso central. Con valores pequeños el modelo se adapta mucho al detalle local y puede volverse ruidoso. Con valores grandes gana estabilidad, pero corre el riesgo de borrar estructura fina. KNN enseña con crudeza que aprender también es definir una geometría razonable para comparar casos.
 
 ### 10.2 Naive Bayes: independencia condicional como aproximación útil
 
-Naive Bayes se apoya en el teorema de Bayes:
+Naive Bayes parte del teorema de Bayes,
 
 \[
-P(Y \mid X)=\frac{P(X \mid Y)P(Y)}{P(X)}
+P(Y \mid X)=\frac{P(X \mid Y)P(Y)}{P(X)},
 \]
 
-Su versión "naive" asume independencia condicional entre features dada la clase:
+y hace un supuesto fuerte:
 
 \[
-P(X_1,\ldots,X_p \mid Y)=\prod_{j=1}^{p}P(X_j \mid Y)
+P(X_1,\ldots,X_p \mid Y)=\prod_{j=1}^{p}P(X_j \mid Y).
 \]
 
-Entonces,
+Asume, en otras palabras, independencia condicional entre features dada la clase.
 
-\[
-P(Y \mid X_1,\ldots,X_p)\propto P(Y)\prod_{j=1}^{p}P(X_j \mid Y)
-\]
-
-El supuesto es fuerte y rara vez exacto. Sin embargo, el modelo puede funcionar muy bien porque convierte un problema complejo en uno tratable y, en muchos dominios, conserva suficiente señal relevante. Su gran lección es epistemológica: un supuesto claramente falso puede seguir siendo útil si organiza bien la parte importante de la realidad.
+Ese supuesto rara vez es literalmente verdadero. Sin embargo, el modelo suele funcionar sorprendentemente bien. La lección es profunda. Un modelo puede ser útil aun cuando su descripción del mundo sea tosca, siempre que conserve la estructura suficiente para decidir. Naive Bayes muestra que, a veces, una simplificación brutal gana por manejabilidad y por resistencia en alta dimensión, especialmente en texto.
 
 ### 10.3 SVM: margen máximo y robustez geométrica
 
-Las máquinas de soporte vectorial buscan separar clases mediante un hiperplano que maximice el margen respecto de los puntos más cercanos de cada clase, los llamados **support vectors**. Si los datos son separables, se busca \(w\) y \(b\) tales que
+Las máquinas de soporte vectorial parten de otra intuición. Si los datos son separables, no alcanza con encontrar una frontera cualquiera. Conviene buscar la que los separe con el mayor margen posible. Formalmente, queremos hallar \(w\) y \(b\) tales que
 
 \[
 y_i(w^Tx_i+b)\ge 1
 \]
 
-para todos los puntos, minimizando al mismo tiempo
+para cada observación, minimizando al mismo tiempo
 
 \[
-\frac{1}{2}\|w\|^2
+\frac{1}{2}\|w\|^2.
 \]
 
-Minimizar la norma de \(w\) equivale a maximizar el margen. La intuición es que fronteras con más margen tienden a generalizar mejor.
+Minimizar la norma de \(w\) equivale a maximizar el margen.
 
-Cuando la separabilidad perfecta no existe, se introducen variables de holgura \(\xi_i\) y un parámetro \(C\):
-
-\[
-\min_{w,b,\xi}\frac{1}{2}\|w\|^2 + C\sum_{i=1}^{n}\xi_i
-\]
-
-Ese parámetro controla cuánto penalizamos violaciones del margen. Allí aparece el equilibrio entre tolerar errores de entrenamiento y evitar fronteras demasiado rígidas.
+La intuición es geométrica y muy poderosa. Una frontera que deja más espacio libre alrededor suele generalizar mejor que otra que pasa demasiado ajustada al entrenamiento. SVM convierte esa idea en un criterio preciso.
 
 ### 10.4 Kernel trick y no linealidad
 
-La potencia de SVM crece enormemente con los kernels. Un kernel permite calcular productos internos en un espacio transformado de alta dimensión sin construir explícitamente esa transformación. Eso hace posible obtener fronteras no lineales con una formulación todavía controlada.
+Cuando una frontera lineal no alcanza, la idea de kernel permite trabajar como si los datos se proyectaran a un espacio de mayor dimensión sin construir explícitamente esa proyección. El resultado práctico es que podemos obtener fronteras no lineales manteniendo una formulación geométrica bien controlada.
 
-El kernel RBF es uno de los más usados. Sus hiperparámetros, en particular \(C\) y \(\gamma\), regulan la complejidad efectiva de la frontera. Valores altos de \(\gamma\) vuelven la influencia de cada punto muy local y pueden conducir a sobreajuste. La virtud de SVM no está solo en su rendimiento, sino en la nitidez con la que muestra cómo una idea geométrica puede convertirse en un método poderoso.
+El kernel RBF es el ejemplo clásico. Sus hiperparámetros, en particular \(C\) y \(\gamma\), regulan cuánto se toleran errores y cuán local se vuelve la influencia de cada punto. Si \(\gamma\) es demasiado alto, cada observación domina solo una vecindad mínima y el sistema puede sobreajustar con facilidad. La flexibilidad aparece, pero no gratis.
 
 ### 10.5 Comparación conceptual entre KNN, Naive Bayes y SVM
 
-Estos tres modelos enseñan tres formas muy distintas de aprender. KNN delega el conocimiento en la estructura local de los ejemplos de entrenamiento. Naive Bayes adopta una simplificación probabilística fuerte para volver tratable el problema. SVM construye una frontera geométrica que privilegia el margen.
+Estos tres métodos son especialmente valiosos juntos porque enseñan tres filosofías distintas de aprendizaje. KNN aprende por similitud local. Naive Bayes simplifica la estructura probabilística para volverla manejable. SVM construye una frontera guiada por un principio geométrico de margen.
 
-Saber compararlos no consiste en enumerar ventajas y desventajas, sino en entender qué sesgo inductivo trae cada uno. KNN supone que la cercanía geométrica es informativa. Naive Bayes supone independencia condicional aproximada. SVM supone que una buena frontera, quizá en un espacio transformado, puede separar con margen. Comprender ese sesgo es mucho más valioso que memorizar una tabla.
+Saber compararlos no es recordar una tabla de pros y contras. Es entender qué sesgo inductivo trae cada uno y en qué tipo de problema ese sesgo se vuelve razonable. Cuando se aprende a ver eso, los algoritmos dejan de ser nombres sueltos y pasan a formar familias de ideas.
 
 ## Parte VI. Árboles y ensambles: potencia, no linealidad y control de varianza
 
-Las familias lineales y de margen máximo no agotan la práctica moderna. En datos tabulares, los árboles y sus ensambles ocupan un lugar central porque capturan interacciones y no linealidades con gran eficacia. Pero su verdadera importancia pedagógica está en otra parte: obligan a pensar cómo se controla la complejidad de modelos muy flexibles y cómo se gana estabilidad sin resignar demasiado poder predictivo.
+Las familias lineales no agotan la práctica real. En datos tabulares, los árboles y sus ensambles ocupan un lugar central porque capturan interacciones y no linealidades con mucha eficacia. También enseñan de manera muy concreta qué significa flexibilidad, por qué un modelo puede volverse inestable y cómo la agregación permite recuperar robustez.
 
 ## Capítulo 11. Árboles de decisión: reglas interpretables con riesgo de inestabilidad
 
 ### 11.1 La idea básica de particionar recursivamente
 
-Un árbol de decisión divide el espacio de features mediante preguntas del tipo "¿\(x_j < t\)?". Cada división intenta producir subconjuntos cada vez más homogéneos respecto del target. Repetida recursivamente, esta lógica construye una colección de reglas if-then que puede ser muy interpretable.
+Un árbol de decisión no ajusta una fórmula global. Divide el espacio de variables mediante preguntas sucesivas del tipo "¿\(x_j < t\)?", con el objetivo de obtener subconjuntos cada vez más homogéneos respecto del target. Vista así, la idea es muy intuitiva: en lugar de buscar una regla única para todo el espacio, el modelo va separando regiones donde el comportamiento se parece más.
 
-La gran ventaja de los árboles es que capturan interacciones y no linealidades sin pedir demasiadas transformaciones previas. Su gran debilidad es la inestabilidad: pequeños cambios en la muestra pueden alterar mucho la estructura aprendida. Esa combinación entre claridad local y fragilidad global define buena parte de su comportamiento.
+Esa estrategia permite capturar interacciones y no linealidades con poco preprocesamiento. Pero también introduce una cierta fragilidad. La estructura del árbol depende de las particiones elegidas y pequeñas perturbaciones en la muestra pueden alterar bastante la forma final. Su virtud y su debilidad nacen de la misma fuente: la flexibilidad local.
 
 ### 11.2 Entropía, información y algoritmo ID3
 
-Una manera clásica de medir impureza en clasificación es la entropía:
+En clasificación, una manera clásica de medir la impureza de un nodo es la entropía
 
 \[
-H(S) = -\sum_{k=1}^{K} p_k \log_2 p_k
+H(S) = -\sum_{k=1}^{K} p_k \log_2 p_k,
 \]
 
-donde \(p_k\) es la proporción de la clase \(k\) en el nodo \(S\). Si el nodo es puro, la entropía vale cero. Si las clases están mezcladas, la entropía aumenta. El algoritmo **ID3** elige la partición que maximiza la reducción esperada de entropía, llamada ganancia de información.
+donde \(p_k\) es la proporción de la clase \(k\) en el nodo \(S\). Si el nodo es puro, la entropía vale cero. Si las clases están mezcladas, aumenta. ID3 elige las particiones que más reducen esa incertidumbre.
 
-La idea profunda es que el árbol no busca reglas "bonitas" ni "intuitivas", sino divisiones que reduzcan incertidumbre respecto del target. La lectura correcta no es solo algorítmica, sino informacional.
+Lo importante es entender la lógica. El árbol busca preguntas que ordenen el target, que vuelvan menos confuso el reparto de clases dentro de cada rama. No persigue divisiones "bonitas" ni semánticamente atractivas. Persigue divisiones que reduzcan incertidumbre según el criterio elegido.
 
 ### 11.3 Gini, CART y C4.5
 
-Otra medida muy utilizada es el índice de **Gini**:
+Otra medida muy usada es el índice de Gini,
 
 \[
-Gini(S) = 1 - \sum_{k=1}^{K} p_k^2
+Gini(S) = 1 - \sum_{k=1}^{K} p_k^2.
 \]
 
-Su interpretación es parecida: nodos más puros tienen menor impureza. El algoritmo **CART** suele usar Gini en clasificación y reducción del error cuadrático en regresión. **C4.5**, por su parte, mejora sobre ID3 al manejar variables continuas, faltantes y una medida de partición más equilibrada llamada gain ratio.
+La idea es análoga: cuanto más puro es el nodo, menor es su impureza. CART suele usar Gini en clasificación y error cuadrático en regresión. C4.5 extiende ideas de ID3 para manejar mejor variables continuas, faltantes y ciertos sesgos hacia atributos con muchas categorías.
 
-El punto importante es que distintos árboles no solo difieren por detalles de implementación. Cambian también en cómo definen "buen split" y, por lo tanto, en el tipo de estructura que tienden a privilegiar.
+No hace falta memorizar siglas como si fueran genealogías de software. Lo que conviene retener es que distintos árboles definen de manera ligeramente distinta qué significa un buen split y, por lo tanto, qué estructura tienden a privilegiar.
 
 ### 11.4 Árboles para regresión
 
-En regresión la lógica general es la misma, pero la impureza se mide mediante dispersión o error cuadrático dentro de cada nodo. El árbol busca divisiones que hagan más homogéneos los valores de la respuesta en los hijos y, al final, suele predecir la media del target en cada hoja.
+En regresión, el árbol particiona el espacio de modo que los valores del target dentro de cada nodo sean lo más homogéneos posible. Al final, cada hoja suele predecir la media de la respuesta en esa región. La intuición es la de un modelo por regiones: el espacio se corta en partes y cada parte recibe una predicción constante.
 
-Esto convierte al árbol de regresión en un modelo por regiones: el espacio de features queda particionado y cada región recibe una predicción constante. Esa forma explica tanto su flexibilidad para capturar no linealidades como su tendencia a producir superficies escalonadas.
+Esa estructura explica tanto su potencia como sus límites. Permite capturar relaciones no lineales sin necesidad de escribirlas explícitamente, pero produce superficies escalonadas y puede volverse muy sensible a cambios pequeños en la muestra.
 
 ### 11.5 Crecimiento, poda y sobreajuste
 
-Si se deja crecer un árbol sin restricciones, es muy probable que termine memorizando detalles accidentales del conjunto de entrenamiento. La **pre-poda** limita profundidad, tamaño mínimo de nodo o mejora mínima por split. La **post-poda** permite crecer más y luego recorta subárboles cuya complejidad no se justifica.
+Si se deja crecer un árbol sin restricciones, lo más probable es que termine memorizando detalles accidentales del entrenamiento. La pre-poda impone límites de profundidad, tamaño mínimo de nodo o mejora mínima para dividir. La post-poda deja crecer más y luego recorta ramas que no justifican la complejidad que agregan.
 
-La lección general va más allá de los árboles. Un modelo interpretable no es útil solo por ser legible; también debe generalizar. La poda es la forma en que esta familia reconoce que la claridad aparente de un árbol muy profundo puede ser, en realidad, una forma visual de sobreajuste.
+Aquí aparece una lección general que trasciende a los árboles. La interpretabilidad de una estructura no la vuelve automáticamente buena. Un árbol muy profundo puede verse explícito y legible en el papel, pero ser simplemente una representación gráfica del sobreajuste.
 
 ### 11.6 Importancia de variables y cautelas
 
-Los árboles ofrecen medidas de importancia basadas en la reducción acumulada de impureza. Son útiles, pero no inocentes. Tienden a favorecer variables con muchos puntos de corte posibles o alta cardinalidad. Además, si varias columnas comparten señal, la importancia puede repartirse de manera arbitraria entre ellas.
+Los árboles suelen ofrecer medidas de importancia basadas en la reducción acumulada de impureza. Son útiles, aunque no inocentes. Tienden a favorecer variables con muchos puntos de corte o alta cardinalidad y, cuando varias columnas comparten señal, la importancia puede repartirse de maneras inestables o arbitrarias.
 
-Por eso conviene complementar con permutation importance, estabilidad entre reentrenamientos y lectura sustantiva. Una variable importante para el árbol no es automáticamente una variable causal ni la mejor candidata para intervenir en el mundo real.
+Por eso conviene complementar esa lectura con permutation importance, con análisis de estabilidad entre reentrenamientos y con criterio sustantivo. Que una variable sea importante para el árbol no significa, por sí solo, que intervenir sobre ella en el mundo real vaya a producir el efecto deseado.
 
 ### 11.7 Cuándo usar árboles
 
-Los árboles son atractivos cuando importa la interpretabilidad, cuando se esperan interacciones y no linealidades, cuando hay mezcla de variables numéricas y categóricas y cuando se desea una primera aproximación muy legible del problema. Como modelo único, suelen perder frente a ensambles bien construidos. Pero como herramienta conceptual y como baseline interpretable siguen siendo valiosos.
-
-Elegir un árbol no es resignar performance por claridad de forma automática. Es priorizar una combinación particular de legibilidad, flexibilidad local y riesgo de inestabilidad.
+Los árboles resultan atractivos cuando interesa una primera aproximación legible, cuando se esperan interacciones y no linealidades, o cuando el preprocesamiento debe mantenerse relativamente simple. Como modelo único suelen ser superados por ensambles más estables, pero siguen siendo extraordinariamente valiosos como baseline interpretable y como herramienta conceptual para pensar el espacio de decisiones.
 
 ## Capítulo 12. Ensambles: combinar modelos para ganar estabilidad o capacidad
 
 ### 12.1 La intuición estadística detrás de los ensambles
 
-Si varios modelos se equivocan de manera distinta, combinarlos puede reducir error total. Esa es la intuición central de los ensambles. En forma simplificada, si \(M\) predictores tienen varianza individual \(\sigma^2\) y correlación promedio \(\rho\), la varianza de su promedio puede escribirse como
+Si varios modelos se equivocan de maneras diferentes, promediarlos puede reducir el error total. En una forma simplificada, si \(M\) predictores tienen varianza \(\sigma^2\) y correlación promedio \(\rho\), la varianza de su promedio puede escribirse como
 
 \[
-\text{Var}(\bar f) = \rho\sigma^2 + \frac{1-\rho}{M}\sigma^2
+\text{Var}(\bar f) = \rho\sigma^2 + \frac{1-\rho}{M}\sigma^2.
 \]
 
-La fórmula enseña dos cosas a la vez. Promediar ayuda. Pero ayuda mucho más cuando los modelos no son demasiado parecidos entre sí. No basta con tener muchos modelos; hace falta también diversidad.
+La lectura es instructiva. Proliferar modelos ayuda, pero ayuda mucho más cuando no todos se equivocan de la misma manera. Cantidad sin diversidad rinde bastante menos de lo que uno imagina. Esta es la intuición estadística que sostiene a los ensambles.
 
 ### 12.2 Bagging
 
-El **bagging** entrena muchos modelos sobre muestras bootstrap del conjunto de entrenamiento y luego agrega sus predicciones. Su efecto principal es reducir varianza, especialmente cuando el modelo base es inestable, como ocurre con los árboles.
+El bagging entrena muchos modelos sobre muestras bootstrap distintas del conjunto de entrenamiento y luego agrega sus predicciones. Su efecto principal es reducir varianza, algo especialmente valioso cuando el modelo base es inestable, como ocurre con los árboles.
 
-Cada muestra bootstrap toma \(n\) observaciones con reemplazo desde el conjunto original de tamaño \(n\). Algunas se repiten y otras quedan afuera. Esas observaciones omitidas pueden usarse como validación interna aproximada mediante el esquema out-of-bag. La belleza del bagging está en su sencillez: aprovecha la inestabilidad del modelo base para transformarla en diversidad útil.
+Hay algo conceptualmente elegante en esta idea. Toma una debilidad del árbol, su sensibilidad a pequeños cambios en la muestra, y la convierte en fuente de diversidad útil. Lo que individualmente era fragilidad se transforma, al agregarse, en robustez colectiva.
 
 ### 12.3 Random Forest
 
-Random Forest agrega una capa más de aleatoriedad al bagging de árboles. En cada split solo se considera un subconjunto aleatorio de variables candidatas. Esta restricción reduce la correlación entre árboles, lo cual vuelve más efectivo el promedio final.
+Random Forest suma al bagging una fuente adicional de aleatoriedad: en cada split solo considera un subconjunto aleatorio de variables. Eso disminuye la correlación entre árboles y hace más efectivo el promedio final. En datos tabulares, esa combinación suele producir modelos muy competitivos con poco ajuste fino.
 
-El resultado suele ser un modelo robusto, competitivo y relativamente poco sensible a tuning fino, especialmente en datos tabulares. Su costo es una pérdida de interpretabilidad respecto del árbol único. Pero precisamente ahí aparece su interés pedagógico: muestra cómo sacrificar algo de claridad local puede devolver mucha estabilidad global.
+El costo es la pérdida de transparencia inmediata respecto del árbol único. Pero la ganancia en estabilidad y desempeño suele ser grande. Aparece aquí una tensión clásica de la disciplina: a medida que la representación colectiva se vuelve más poderosa, la explicación local se vuelve menos directa.
 
 ### 12.4 Boosting: aprender corrigiendo errores previos
 
-Mientras bagging trabaja en paralelo para reducir varianza, el **boosting** construye un modelo secuencialmente, corrigiendo errores de etapas previas. En AdaBoost se reponderan observaciones difíciles. En Gradient Boosting, cada nuevo modelo se ajusta a los residuos o, más precisamente, al gradiente negativo de la pérdida actual.
-
-En forma funcional,
+Mientras el bagging trabaja en paralelo para reducir varianza, el boosting construye el modelo secuencialmente. Cada nuevo componente intenta corregir los errores que el ensamble actual todavía comete. En Gradient Boosting esa idea puede resumirse como
 
 \[
-F_m(x)=F_{m-1}(x)+\eta h_m(x)
+F_m(x)=F_{m-1}(x)+\eta h_m(x),
 \]
 
-donde \(F_m\) es el ensamble acumulado, \(h_m\) el nuevo modelo débil y \(\eta\) la tasa de aprendizaje. La idea es profunda: en lugar de ajustar un único modelo grande, construimos gradualmente una función cada vez más capaz de corregir sus propias limitaciones.
+donde \(h_m\) es un modelo débil que corrige el gradiente negativo de la pérdida actual y \(\eta\) es la tasa de aprendizaje.
+
+La intuición es poderosa. En vez de buscar desde el inicio una solución compleja, el modelo va afinando una función paso a paso, enfocándose cada vez en lo que todavía no resolvió bien. Esa capacidad de corregir secuencialmente vuelve al boosting muy expresivo, pero también lo hace sensible a la regularización y al tuning.
 
 ### 12.5 XGBoost y regularización moderna en árboles
 
-XGBoost es una realización particularmente eficiente y regularizada del gradient boosting sobre árboles. Su objetivo puede expresarse, en forma esquemática, como
+XGBoost es una implementación particularmente eficiente y regularizada del gradient boosting sobre árboles. Su objetivo, de manera simplificada, puede escribirse como
 
 \[
-\text{Obj} = \sum_{i=1}^{n} l(y_i,\hat y_i) + \sum_{k=1}^{K}\Omega(f_k)
+\text{Obj} = \sum_{i=1}^{n} l(y_i,\hat y_i) + \sum_{k=1}^{K}\Omega(f_k),
 \]
 
-donde \(l\) mide el error por observación y \(\Omega(f_k)\) penaliza la complejidad de cada árbol del ensamble. Una forma común de esa penalización es
+donde la primera parte mide error y la segunda penaliza complejidad de cada árbol.
 
-\[
-\Omega(f)=\gamma T + \frac{\lambda}{2}\sum_{j=1}^{T} w_j^2
-\]
-
-Lo importante no es recordar la fórmula exacta, sino entender su lógica: el boosting moderno no solo agrega árboles, también regula explícitamente cuánto pueden complicarse.
+Lo importante aquí no es aprender de memoria los detalles de una librería famosa, sino comprender la idea que cristaliza: combinar la potencia del boosting con mecanismos explícitos para controlar sobreajuste y costo computacional. En esa síntesis se explica buena parte de su éxito práctico.
 
 ### 12.6 Voting, stacking, cascading, ensambles homogéneos e híbridos
 
-No todo ensamble es bagging o boosting. En **voting**, varios modelos votan o promedian probabilidades. En **stacking**, las predicciones de modelos base se convierten en entrada de un meta-modelo que aprende a combinarlas. Para que el stacking sea honesto, esas predicciones deben generarse fuera de fold; de lo contrario, el meta-modelo aprende sobre leakage.
+No todos los ensambles son bagging o boosting. En voting, varios modelos votan o promedian probabilidades. En stacking, las salidas de distintos modelos se convierten en entradas de un meta-modelo que aprende a combinarlas. Para que ese procedimiento sea honesto, esas predicciones base deben generarse fuera de fold; de lo contrario, el meta-modelo aprendería sobre leakage.
 
-También existen estructuras en cascada, donde la salida de una etapa condiciona la siguiente, y ensambles híbridos que mezclan familias distintas de modelos. La idea de fondo es siempre la misma: explotar complementariedades sin olvidar que cada mecanismo de combinación introduce también nuevos riesgos de complejidad y sobreajuste.
+La idea que unifica estas variantes es aprovechar complementariedades entre modelos sin olvidar que cada nueva capa también añade complejidad experimental. Un ensamble no es bueno por acumular piezas, sino por extraer diversidad útil sin perder control metodológico.
 
 ### 12.7 Performance versus interpretabilidad
 
-Los ensambles suelen ganar performance, robustez y capacidad de capturar estructura compleja. Pero esa ganancia rara vez es gratuita: la transparencia inmediata disminuye. La tensión entre desempeño e interpretabilidad no debe negarse ni resolverse con frases vacías. Debe explicitarse.
+Los ensambles suelen ganar rendimiento y robustez, pero rara vez gratis. La transparencia inmediata disminuye. Ese costo no debe esconderse detrás de frases cómodas. Debe asumirse como una decisión de diseño. En algunos problemas la mejora predictiva justifica con claridad esa pérdida interpretativa. En otros, una logística o un árbol pequeño pueden ser preferibles aunque cedan algunos puntos de score.
 
-En algunos problemas la mejora predictiva justifica el costo interpretativo. En otros, un árbol podado o una logística regularizada pueden ser preferibles aunque pierdan algunos puntos de métrica. La respuesta madura no busca el mejor modelo en abstracto, sino el mejor compromiso para el problema concreto.
+No existe una respuesta universal. Existe un equilibrio entre precisión, estabilidad, explicabilidad, costo de mantenimiento y consecuencias de error. La madurez profesional consiste en elegir ese equilibrio con argumentos, no por inercia ni por moda.
 
 ## Parte VII. Aprendizaje no supervisado y reducción de dimensión
 
-No todos los problemas vienen con etiquetas. A veces la tarea consiste en descubrir estructura, resumir información o construir una representación más compacta. Esta parte estudia dos familias fundamentales para esos escenarios: clustering y reducción de dimensionalidad. Ambas son especialmente peligrosas cuando se las usa de manera automática, porque obligan a preguntarse qué significa "parecido" y qué estructura queremos preservar.
+No todos los problemas vienen con etiquetas. A veces la tarea es encontrar estructura, resumir información o construir una representación más compacta. Estos problemas obligan a pensar con especial cuidado qué significa que dos casos sean parecidos y qué estructura queremos preservar cuando comprimimos el mundo observado.
 
 ## Capítulo 13. Clustering: descubrir estructura sin etiquetas
 
 ### 13.1 Qué problema intenta resolver el clustering
 
-Clustering no es adivinar clases ocultas que supuestamente ya existen en la naturaleza. Es construir una partición del espacio de datos tal que las observaciones del mismo grupo resulten más parecidas entre sí que a las de otros grupos, según una noción elegida de similitud.
+Clustering no consiste en revelar una verdad oculta escrita de antemano en la naturaleza. Consiste en construir una partición del espacio de datos tal que los puntos del mismo grupo resulten más parecidos entre sí que a los de otros grupos, según una noción elegida de similitud. Esa aclaración es importante porque evita una ilusión frecuente: creer que los clusters encontrados existen con independencia del método, la escala y la representación.
 
-Esta aclaración es crucial. Los clusters no son entidades ontológicas garantizadas por la realidad. Son estructuras dependientes de la representación, la escala, la métrica y el algoritmo. Por eso agrupar bien exige, antes que nada, saber qué significa "parecido" en el problema que tenemos delante.
+En realidad, los clusters dependen de cómo escribimos el problema. Cambiar la escala, la métrica o el algoritmo puede alterar por completo la estructura hallada. Eso no invalida el clustering. Solo obliga a usarlo con humildad conceptual.
 
 ### 13.2 Distancia, escala y significado de "parecido"
 
-En datos numéricos suele aparecer la distancia euclídea como elección natural, pero no siempre es adecuada. En datos mixtos, categóricos o textuales puede ser preferible otra noción de disimilitud. Además, si las variables están en escalas muy diferentes, una de ellas puede dominar la distancia total y distorsionar la agrupación.
+En datos numéricos suele usarse distancia euclídea, pero no siempre es la noción correcta de cercanía. En datos mixtos, categóricos o textuales puede ser más razonable otra disimilitud. Además, si las escalas son muy diferentes, una sola variable puede dominar la distancia total y ordenar el espacio a su antojo.
 
-El clustering obliga a pensar con particular claridad la representación. Agrupar sobre variables mal escaladas o sobre una mezcla de señales relevantes y ruido irrelevante produce grupos aparentemente nítidos, pero conceptualmente vacíos. El algoritmo no corrige una mala noción de parecido; la amplifica.
+El clustering vuelve especialmente visible una verdad general de la ciencia de datos: el algoritmo no corrige una representación pobre; la amplifica. Si la noción de parecido no tiene sentido para el problema, los grupos que aparezcan serán técnicamente consistentes con esa mala elección, pero sustantivamente irrelevantes.
 
 ### 13.3 Tendencia al clustering y estadístico de Hopkins
 
-Antes de elegir un algoritmo, puede ser útil preguntarse si el dataset muestra alguna tendencia real a formar agrupamientos o si se parece más a una nube sin estructura clara. El estadístico de **Hopkins** es una herramienta clásica para esa pregunta. Compara distancias entre puntos reales y distancias generadas desde puntos aleatorios al dataset observado.
+Antes de agrupar conviene preguntarse si el dataset muestra realmente indicios de estructura agrupable o si se parece más a una nube continua sin grupos claros. El estadístico de Hopkins se diseñó precisamente para esa intuición. Compara distancias entre puntos observados y puntos aleatorios generados en el mismo espacio. Valores cercanos a 1 sugieren tendencia al agrupamiento; valores alrededor de 0.5 sugieren aleatoriedad.
 
-Valores cercanos a 1 sugieren tendencia a clustering; valores cercanos a 0.5 sugieren una estructura más aleatoria. No es un veredicto absoluto, pero cumple una función importante: recordarnos que agrupar no siempre es una decisión justificada.
+Más allá del detalle técnico, la enseñanza es saludable. No siempre está justificado clusterizar. A veces lo que falta no es un mejor algoritmo, sino una buena razón para agrupar.
 
 ### 13.4 K-means en profundidad
 
 K-means busca particionar las observaciones en \(K\) grupos minimizando la suma de cuadrados intra-cluster:
 
 \[
-\min_{C_1,\ldots,C_K}\sum_{k=1}^{K}\sum_{x_i \in C_k}\|x_i-\mu_k\|^2
+\min_{C_1,\ldots,C_K}\sum_{k=1}^{K}\sum_{x_i \in C_k}\|x_i-\mu_k\|^2,
 \]
 
-donde \(\mu_k\) es el centroide del cluster \(C_k\). El algoritmo alterna dos pasos: asigna cada punto al centroide más cercano y luego recalcula cada centroide como promedio de los puntos asignados.
+donde \(\mu_k\) es el centroide del cluster \(C_k\).
 
-La idea es simple, pero sus consecuencias son profundas. K-means supone grupos aproximadamente convexos y definidos por distancia a un centro. Además, solo garantiza convergencia a un mínimo local, de modo que la inicialización importa. Por eso suelen usarse varios reinicios o estrategias como k-means++.
+La intuición es directa. Cada grupo debería ser compacto alrededor de un centro. Esa sencillez vuelve a K-means útil y rápido, pero también lo ata a una geometría particular. Funciona mejor cuando los grupos son aproximadamente convexos y separados por cercanía a centroides. Si la estructura real del dato tiene formas extrañas o densidades muy diferentes, su criterio empieza a forzar una realidad que quizás no exista.
 
-### 13.5 Un ejemplo mínimo para entender K-means
+### 13.5 K-means en un caso sencillo
 
-Si tomamos los puntos unidimensionales \(1,2,3,10,11,12\) y fijamos \(K=2\), el algoritmo tiende a encontrar naturalmente los grupos \(\{1,2,3\}\) y \(\{10,11,12\}\). El ejemplo es trivial, pero enseña algo importante: K-means no "descubre" la verdad de los grupos, sino la partición que mejor optimiza una función bajo una geometría concreta.
-
-Cuando los grupos están menos separados o aparecen outliers, diferentes inicializaciones pueden conducir a soluciones distintas. Esa sensibilidad muestra por qué la estabilidad también es parte de la evaluación en no supervisado.
+Si tomamos los puntos unidimensionales \(1,2,3,10,11,12\) y fijamos \(K=2\), el algoritmo tenderá a separar \(\{1,2,3\}\) de \(\{10,11,12\}\). El ejemplo es simple, pero ilustra algo importante. K-means no descubre una esencia metafísica del conjunto. Encuentra la partición que mejor optimiza su función objetivo bajo la geometría que supone. Cuando aparecen outliers o grupos de forma no convexa, esa geometría deja de ajustarse bien al problema.
 
 ### 13.6 Elegir \(K\): codo, silhouette y estabilidad
 
-Elegir el número de clusters no es un acto mágico. El método del **codo** observa cómo disminuye la inercia intra-cluster al aumentar \(K\) y busca un punto a partir del cual la mejora marginal se aplana. El índice silhouette evalúa cohesión y separación. El análisis de estabilidad pregunta cuánto cambian los grupos bajo pequeñas perturbaciones o remuestreos.
+Elegir el número de clusters no es un acto mágico. El método del codo observa cómo cae la inercia intra-cluster al aumentar \(K\). El índice silhouette agrega información sobre cohesión y separación. El análisis de estabilidad pregunta cuánto cambian los grupos frente a perturbaciones o remuestreos.
 
-Ninguno de estos criterios reemplaza al dominio. Puede haber varios valores de \(K\) defendibles según la granularidad que interese. También puede ocurrir que el mejor \(K\) estadístico no sea el más útil para la acción posterior. En clustering, la decisión metodológica nunca queda cerrada por un único número.
+Ninguno de estos criterios agota la interpretación. Puede haber varios valores de \(K\) razonables según el nivel de granularidad que interese. En clustering, como en casi todo lo importante, el número correcto no emerge por sí solo de una fórmula. Surge de una negociación entre estructura matemática y propósito analítico.
 
 ### 13.7 Clustering jerárquico
 
-El clustering jerárquico no fija \(K\) desde el principio. Construye una secuencia de fusiones o particiones que puede visualizarse mediante un dendrograma. En su versión aglomerativa comienza con cada observación como cluster propio y luego fusiona grupos según una regla de enlace.
+El clustering jerárquico no fija \(K\) desde el comienzo. Construye una secuencia de fusiones o particiones que puede visualizarse como un dendrograma. En la versión aglomerativa se empieza con cada observación como cluster propio y luego se van fusionando grupos según una regla de enlace.
 
-Single linkage favorece cadenas; complete linkage favorece grupos compactos; average linkage intermedia; Ward tiende a minimizar el aumento de varianza intra-cluster. Su fortaleza principal es la visión multiescala: permite explorar estructuras a distintos niveles de resolución. Su costo, especialmente en bases grandes, es computacional y también interpretativo.
+Su interés principal es que ofrece una visión multiescala. Permite mirar la estructura a distintos niveles de resolución y preguntarse dónde empiezan a aparecer grupos razonables. A la vez, obliga a recordar que distintas reglas de enlace privilegian distintas nociones de proximidad, de modo que el dendrograma tampoco es una verdad desnuda del dato.
 
 ### 13.8 DBSCAN: densidad, ruido y formas arbitrarias
 
-DBSCAN define clusters como regiones densas separadas por regiones de baja densidad. Requiere dos parámetros, \(\varepsilon\) y \(minPts\), y tiene dos virtudes fuertes: detecta grupos de forma arbitraria y etiqueta explícitamente observaciones como ruido.
+DBSCAN cambia de lógica. En lugar de buscar centroides, define clusters como regiones densas separadas por regiones de baja densidad. Esa idea le da dos virtudes muy potentes: detecta grupos de forma arbitraria y puede identificar explícitamente puntos de ruido.
 
-Esa misma virtud trae una dificultad. Si la densidad varía mucho entre regiones, un único \(\varepsilon\) puede ser demasiado pequeño para algunos grupos y demasiado grande para otros. DBSCAN es una herramienta excelente cuando la idea de densidad coincide con la estructura del fenómeno; fuera de ese caso, su comportamiento puede degradarse rápidamente.
+Su límite aparece cuando la densidad cambia mucho entre regiones. Un único valor de \(\varepsilon\) puede ser demasiado exigente para algunos grupos y demasiado permisivo para otros. Como siempre, el algoritmo resulta adecuado cuando la estructura que presupone coincide con la estructura del fenómeno.
 
 ### 13.9 Interpretar clusters y evitar errores frecuentes
 
-Obtener clusters es apenas el comienzo. Luego hay que describirlos, compararlos y preguntarse si habilitan decisiones distintas. Para eso suele ser útil mirar centroides, distribuciones características y variables que diferencian grupos. Pero la interpretación debe mantenerse disciplinada: es fácil inventar relatos sobre clusters que en realidad son artefactos de la escala o del algoritmo.
+Obtener clusters es apenas el comienzo. Luego hay que describirlos, compararlos y preguntarse si habilitan decisiones distintas. Esa interpretación exige mirar centroides, distribuciones características, estabilidad y sentido sustantivo. Sin esa capa posterior, el clustering corre el riesgo de convertirse en un dibujo seductor sin consecuencia analítica.
 
-Los errores más frecuentes son bastante estables: creer que todo cluster hallado es real, elegir \(K\) solo por un índice, ignorar la sensibilidad a la representación y confundir grupos construidos algorítmicamente con clases verdaderas del fenómeno. Clustering exige, quizá más que otros temas, humildad interpretativa.
+Los errores frecuentes se repiten: creer que cualquier cluster hallado es real, elegir \(K\) solo por un índice, ignorar la sensibilidad a la representación y confundir grupos algorítmicos con clases verdaderas del mundo. El clustering es útil cuando se lo usa como herramienta para pensar estructura, no como oráculo ontológico.
 
 ## Capítulo 14. Reducción de dimensionalidad: comprimir sin perder estructura esencial
 
 ### 14.1 Por qué reducir dimensión
 
-Reducir dimensión no sirve solo para "dibujar en 2D". También puede ayudar a combatir ruido, colinealidad, costos computacionales, dificultad de visualización y degradación de algoritmos basados en distancias. En muchos problemas la complejidad efectiva de los datos es menor que el número bruto de variables, y encontrar esa estructura más compacta mejora tanto el análisis como el modelado posterior.
+Reducir dimensión sirve para varias cosas a la vez. Puede ayudar a combatir ruido, resumir información redundante, aliviar costo computacional, mejorar algunos algoritmos sensibles a espacios altos y facilitar visualizaciones. Pero debajo de esas motivaciones prácticas hay una pregunta más profunda: qué estructura queremos conservar cuando comprimimos.
 
-La pregunta central es siempre la misma: qué estructura queremos preservar. Varianza global, distancias, vecindades locales o geometría de variedad no son objetivos equivalentes. Elegir una técnica de reducción equivale a elegir cuál de esos aspectos sacrificar lo menos posible.
+No todas las técnicas preservan lo mismo. Algunas priorizan varianza global. Otras, distancias. Otras, vecindades locales. Otras suponen que los datos viven cerca de una variedad no lineal. Elegir un método de reducción es decidir qué sacrificio consideramos menos grave.
 
 ### 14.2 Maldición de la dimensionalidad
 
-Cuando la dimensión crece, muchas intuiciones geométricas de baja dimensión dejan de funcionar. Los puntos tienden a volverse todos lejanos entre sí, los volúmenes crecen de manera explosiva y la noción de vecindad pierde nitidez. Este fenómeno, conocido como **maldición de la dimensionalidad**, explica por qué KNN, ciertos métodos de clustering y algunas medidas de densidad se degradan en espacios de alta dimensión.
+Cuando la dimensión crece, varias intuiciones geométricas de baja dimensión se rompen. Los puntos tienden a parecer todos lejanos. Los volúmenes crecen explosivamente. La noción de vecindad pierde nitidez. A este fenómeno se lo llama maldición de la dimensionalidad.
 
-Reducir dimensión no elimina mágicamente el problema, pero puede mitigarlo si la estructura relevante del dato vive cerca de un subespacio o de una variedad de menor dimensión efectiva. Esa es la esperanza que justifican muchas técnicas de compresión.
+No se trata de una maldición mística, sino de un cambio real en la geometría del espacio. Métodos basados en distancia o densidad empiezan a degradarse porque la información útil se diluye. Reducir dimensión no elimina mágicamente el problema, pero puede mitigarlo si la estructura relevante vive cerca de un subespacio o una variedad de menor dimensión efectiva.
 
 ### 14.3 PCA: idea, formulación y geometría
 
-El análisis de componentes principales busca nuevas direcciones ortogonales que capturen la mayor varianza posible. Si \(X\) es la matriz de datos centrada, la primera componente principal resuelve
+PCA busca nuevas direcciones ortogonales que capturen la mayor varianza posible. Si \(X\) es la matriz centrada, la primera componente principal resuelve
 
 \[
-\max_{\|w\|=1}\text{Var}(Xw)
+\max_{\|w\|=1}\text{Var}(Xw),
 \]
 
-lo cual equivale a maximizar
+lo que equivale a maximizar
 
 \[
-w^T\Sigma w
+w^T\Sigma w,
 \]
 
-donde \(\Sigma\) es la matriz de covarianza. La solución lleva a los autovectores de \(\Sigma\), y el asociado al mayor autovalor define la primera componente.
+donde \(\Sigma\) es la matriz de covarianza. La solución está dada por el autovector asociado al mayor autovalor.
 
-Esta formulación deja una idea importante: PCA no busca variables predictivas ni componentes "útiles" en sentido de negocio. Busca direcciones de máxima varianza global bajo una restricción lineal y ortogonal. Ese objetivo es potente, pero no debe confundirse con otros.
+La intuición geométrica es clara. PCA gira el sistema de coordenadas para mirar la nube de puntos desde la dirección donde más se estira. No busca la variable más importante en sentido sustantivo. Busca la dirección de mayor varianza lineal. Ese matiz es la diferencia entre usar PCA con criterio y usarlo como un rito automático.
 
 ### 14.4 Scores, loadings y varianza explicada
 
-Los **loadings** indican cuánto pesa cada variable original en cada componente. Los **scores** son las coordenadas de las observaciones proyectadas sobre esas nuevas direcciones. Si los autovalores son \(\lambda_1,\ldots,\lambda_p\), la proporción de varianza explicada por la componente \(j\) es
+Los loadings indican cuánto pesa cada variable original en cada componente. Los scores son las coordenadas de cada observación en el nuevo sistema de ejes. Si los autovalores son \(\lambda_1,\ldots,\lambda_p\), la proporción de varianza explicada por la componente \(j\) es
 
 \[
-\frac{\lambda_j}{\sum_{m=1}^{p}\lambda_m}
+\frac{\lambda_j}{\sum_{m=1}^{p}\lambda_m}.
 \]
 
-El scree plot ayuda a decidir cuántas componentes conservar, pero no existe un umbral mágico universal. Conservar 90%, 95% o 99% de varianza puede ser razonable o absurdo según el problema. Lo importante es relacionar ese corte con el objetivo de la reducción.
+El scree plot ayuda a decidir cuántas componentes conservar, pero no existe un porcentaje mágico universal. Guardar el 95% de la varianza puede ser sensato en un caso y completamente irrelevante en otro. Todo depende de para qué se reducirá la dimensión y qué estructura conviene no perder.
 
 ### 14.5 Qué preserva PCA y qué no
 
-PCA preserva, del mejor modo posible bajo su restricción, varianza global lineal. No preserva necesariamente separabilidad de clases, estructura no lineal ni interpretabilidad sustantiva. Una variable con poca varianza puede ser altamente predictiva y quedar relegada por PCA. Además, el método depende de la escala: si una variable domina por sus unidades, dominará también las primeras componentes si no se estandariza.
+PCA preserva, del mejor modo posible bajo sus restricciones, varianza global lineal. No preserva necesariamente separabilidad de clases, estructura no lineal ni interpretabilidad sustantiva. Una variable con poca varianza puede ser muy predictiva y quedar relegada por completo. Por eso usar PCA no equivale a mejorar el modelado. A veces ayuda mucho; otras veces elimina justo la señal que importaba.
 
-Por eso PCA no debe aplicarse como gesto automático. Es una herramienta muy valiosa cuando su objetivo coincide con el del análisis. Fuera de ese caso, puede comprimir precisamente lo que no convenía sacrificar.
+El error frecuente consiste en tratar a PCA como un preprocesamiento universalmente beneficioso. En realidad, solo conviene cuando la estructura que queremos conservar se parece a la que PCA privilegia.
 
 ### 14.6 Relación entre PCA, ruido, colinealidad y overfitting
 
-Cuando muchas variables están fuertemente correlacionadas, PCA puede condensar esa redundancia en pocas componentes y estabilizar modelos posteriores. También puede ayudar a filtrar ruido distribuido en direcciones de baja varianza. En ese sentido, funciona como herramienta de compresión y, a veces, de regularización implícita.
+Cuando muchas variables están correlacionadas, PCA puede condensar esa redundancia en unas pocas componentes y estabilizar modelos posteriores. También puede servir para filtrar ruido distribuido en direcciones de baja varianza. En ese sentido, actúa como una especie de compresión estructurada.
 
-El costo es interpretativo. Las componentes son combinaciones lineales, no variables originales fáciles de comunicar. La ganancia en estabilidad debe sopesarse contra la pérdida de claridad. Reducir dimensión nunca es gratis: cambia lo que podemos explicar.
+El precio es interpretativo. Las nuevas variables dejan de tener un significado directo en el lenguaje original del problema. Como tantas veces en ciencia de datos, ganar estabilidad implica aceptar una pérdida en transparencia semántica.
 
 ### 14.7 MDS: preservar distancias
 
-El **multidimensional scaling** parte de una matriz de distancias o disimilitudes y busca una configuración en baja dimensión que las preserve lo mejor posible. A diferencia de PCA, no prioriza varianza global, sino proximidades entre observaciones. En su versión métrica suele minimizar una medida de stress como
+El multidimensional scaling parte de una matriz de distancias o disimilitudes y busca una representación de baja dimensión que las preserve lo mejor posible. A diferencia de PCA, su prioridad no es la varianza, sino la geometría relacional entre observaciones.
 
-\[
-\text{Stress}=\sqrt{\frac{\sum_{i<j}(d_{ij}-\delta_{ij})^2}{\sum_{i<j}\delta_{ij}^2}}
-\]
-
-donde \(\delta_{ij}\) son las disimilitudes originales y \(d_{ij}\) las distancias en el espacio reducido. La interpretación es directa: queremos deformar lo menos posible la geometría relacional del conjunto.
+Esa diferencia lo vuelve especialmente útil cuando las distancias originales tienen sentido por sí mismas y queremos una representación visual o analítica que conserve aproximadamente esa estructura. No responde a la misma pregunta que PCA, y por eso no debe compararse con él como si fueran versiones fuertes y débiles de una misma idea.
 
 ### 14.8 t-SNE: vecindades locales para visualización
 
-t-SNE es una técnica no lineal orientada principalmente a visualización. Su objetivo es preservar vecindades locales: puntos cercanos en alta dimensión deberían permanecer relativamente cercanos en baja dimensión. Esa prioridad la vuelve muy poderosa para mostrar estructura local, pero también muy fácil de malinterpretar.
+t-SNE es una técnica no lineal orientada sobre todo a visualización. Su objetivo es preservar vecindades locales: puntos cercanos en alta dimensión deberían permanecer cercanos en baja dimensión. Gracias a eso suele producir mapas muy expresivos para explorar estructura local.
 
-Las distancias globales en un mapa t-SNE no deben leerse como si fueran fieles. Que dos grupos aparezcan muy separados en el gráfico no significa necesariamente que estén tan lejos en el espacio original. Además, hiperparámetros como la perplexity influyen mucho en el resultado. t-SNE es excelente para explorar; es mala como prueba concluyente de cuántos clusters "hay".
+Pero precisamente por esa fortaleza aparece el riesgo de mala interpretación. Las distancias globales en un mapa t-SNE no deben leerse como si fueran fieles al espacio original. Ver grupos separados en dos dimensiones no prueba por sí solo que existan clusters bien definidos en alta dimensión. t-SNE es valioso como lente exploratoria, no como certificado automático de estructura.
 
 ### 14.9 ISOMAP: variedades y distancias geodésicas
 
-ISOMAP parte de la hipótesis de que los datos viven sobre una variedad no lineal embebida en alta dimensión. En lugar de preservar distancias euclídeas directas, intenta preservar distancias geodésicas aproximadas sobre esa variedad, construidas a partir de un grafo de vecinos.
+ISOMAP parte de la idea de que los datos pueden vivir sobre una variedad no lineal embebida en un espacio de alta dimensión. En vez de preservar distancias euclídeas directas, intenta preservar distancias geodésicas aproximadas sobre esa variedad.
 
-Cuando esa hipótesis es razonable, ISOMAP puede "desenrollar" estructuras que PCA no capta. Su debilidad es la sensibilidad a ruido, desconexiones y a una mala construcción del grafo de vecindad. Como toda técnica no lineal, exige que el supuesto geométrico tenga sentido en el problema concreto.
+Cuando esa hipótesis es razonable, puede recuperar estructura que PCA pierde por completo. Pero si la variedad no existe o el grafo de vecindad se construye mal, el método se degrada rápido. Una vez más, el valor de la técnica depende de que su supuesto geométrico dialogue bien con el fenómeno.
 
 ### 14.10 Cómo comparar PCA, MDS, t-SNE e ISOMAP
 
-PCA privilegia varianza global lineal. MDS privilegia preservación de distancias. t-SNE privilegia vecindades locales para visualización. ISOMAP privilegia geometría de variedad mediante distancias geodésicas. Las cuatro técnicas reducen dimensión, pero no preservan la misma estructura ni sirven para la misma tarea.
+PCA prioriza varianza global lineal. MDS prioriza distancias. t-SNE prioriza vecindades locales para visualización. ISOMAP prioriza geometría de variedad mediante distancias geodésicas. Todas son técnicas de reducción de dimensión, pero preservar dimensión no es preservar estructura de una única manera.
 
-Confundirlas como si todas "sirvieran para bajar columnas" es un error conceptual serio. La pregunta correcta siempre es: qué estructura quiero conservar y para qué usaré esa representación reducida.
+La pregunta correcta no es cuál es mejor en abstracto, sino qué aspecto del espacio necesitamos conservar para el uso que queremos dar a la representación. Comprender esa diferencia evita mucho uso automático de herramientas poderosas.
 
 ## Parte VIII. Redes neuronales y representación de texto
 
-Las técnicas estudiadas hasta aquí muestran muchas formas de aprender, pero todavía mantienen una estructura de representación relativamente explícita. En redes neuronales y NLP aparece con fuerza otra idea: aprender o construir representaciones cada vez más útiles a partir de objetos originalmente difíciles de modelar, como imágenes, audio o texto. Esta parte introduce esa lógica sin perder de vista el criterio metodológico general.
+Hasta aquí vimos muchos modelos que trabajan sobre representaciones bastante explícitas. En redes neuronales y en procesamiento de lenguaje natural aparece con más fuerza otra idea: la propia representación puede ser aprendida o construida de formas mucho más ricas, especialmente cuando los datos son complejos, como texto, audio o imágenes.
 
 ## Capítulo 15. Redes neuronales: de la linealidad a representaciones jerárquicas
 
 ### 15.1 El perceptrón simple
 
-La neurona artificial más elemental calcula una combinación lineal de las entradas y aplica luego una función de activación:
+La unidad más básica de una red neuronal calcula una combinación lineal y aplica una activación:
 
 \[
-a=\phi(w^Tx+b)
+a=\phi(w^Tx+b),
 \]
 
-donde \(w\) son los pesos, \(b\) el sesgo y \(\phi\) una no linealidad. El perceptrón simple puede verse como un clasificador lineal. Si las clases son linealmente separables, existe un hiperplano que el perceptrón puede aprender mediante ajustes sucesivos basados en el error.
+donde \(w\) son pesos, \(b\) es un sesgo y \(\phi\) una función de activación.
 
-Una regla clásica de actualización toma la forma
-
-\[
-w \leftarrow w + \eta (y-\hat y)x
-\]
-
-y su interpretación es transparente: si el ejemplo fue clasificado de manera incorrecta, los pesos se corrigen en la dirección que vuelve más compatible la salida con la etiqueta observada.
+El perceptrón simple puede verse como un clasificador lineal. Su valor pedagógico es enorme porque muestra que aprender consiste, en este nivel elemental, en ajustar una frontera que separe ejemplos en el espacio de entrada. La red neuronal no aparece de la nada como una caja mágica. Nace de extender, capa tras capa, esta idea básica.
 
 ### 15.2 La limitación del perceptrón y el problema XOR
 
-El perceptrón simple no puede resolver problemas no linealmente separables. El ejemplo canónico es XOR. Su valor pedagógico es enorme porque muestra que acumular linealidades no crea no linealidad. Una composición de transformaciones lineales sigue siendo lineal.
+El perceptrón simple no puede resolver problemas no linealmente separables. El ejemplo clásico es XOR. Lo interesante de este límite no es el ejercicio escolar, sino la lección conceptual que encierra: acumular linealidades no crea no linealidad. Una composición de transformaciones lineales sigue siendo lineal.
 
-De ahí surge la necesidad de funciones de activación no lineales y de varias capas. La limitación del perceptrón no es un detalle histórico: es el punto exacto donde aparece la idea de representación jerárquica.
+Esa constatación obliga a introducir capas ocultas y funciones de activación no lineales. Ahí empieza a aparecer la noción de representación jerárquica. La red deja de ser un simple separador lineal y pasa a aprender transformaciones intermedias del espacio.
 
 ### 15.3 Perceptrón multicapa y composición de funciones
 
-Un perceptrón multicapa construye representaciones intermedias:
+En un perceptrón multicapa, cada nivel produce una representación que alimenta al siguiente:
 
 \[
 h^{(1)} = \phi(W^{(1)}x+b^{(1)}), \qquad
 h^{(2)} = \phi(W^{(2)}h^{(1)}+b^{(2)}), \qquad \ldots
 \]
 
-hasta llegar a una salida final \(\hat y\). Cada capa transforma la representación previa y permite capturar estructuras cada vez más complejas.
+hasta llegar a una salida final \(\hat y\).
 
-La intuición importante no es solo que "más capas aprenden más", sino que cada capa puede descubrir patrones útiles para la siguiente. En ese sentido, las redes neuronales no solo ajustan una función; aprenden una secuencia de representaciones.
+La intuición importante es que la red no solo ajusta una función de entrada a salida. Aprende una secuencia de representaciones cada vez más adecuadas para la tarea. En visión, eso puede significar pasar de bordes a formas. En lenguaje, de tokens a relaciones contextuales. El poder de las redes no proviene solo de tener muchos parámetros, sino de organizar esos parámetros en una composición rica de transformaciones.
 
 ### 15.4 Función de pérdida y descenso por gradiente
 
-Como en otros modelos, entrenar una red significa minimizar una pérdida \(\mathcal{L}(\theta)\), donde \(\theta\) reúne todos los pesos y sesgos. El descenso por gradiente actualiza parámetros según
+Como en otros modelos, entrenar una red significa minimizar una pérdida \(\mathcal{L}(\theta)\), donde \(\theta\) agrupa todos los parámetros. El descenso por gradiente actualiza
 
 \[
-\theta_{t+1} = \theta_t - \eta \nabla_{\theta}\mathcal{L}(\theta_t)
+\theta_{t+1} = \theta_t - \eta \nabla_{\theta}\mathcal{L}(\theta_t),
 \]
 
-La tasa de aprendizaje \(\eta\) controla el tamaño del paso. Si es muy grande, el entrenamiento puede oscilar o divergir. Si es muy pequeña, el avance puede volverse desesperantemente lento. La optimización en redes no es un detalle técnico periférico: condiciona fuertemente qué tipo de solución llegamos a encontrar.
+donde \(\eta\) es la tasa de aprendizaje.
+
+La idea general es sencilla. Si el gradiente señala la dirección de mayor aumento de la pérdida, avanzar en sentido contrario debería reducirla. La dificultad práctica está en que el paisaje de optimización de una red profunda puede ser irregular, sensible a escalas, a inicialización y a hiperparámetros. Lo esencial, sin embargo, sigue siendo comprensible: la red aprende ajustando miles o millones de parámetros para bajar una medida explícita de error.
 
 ### 15.5 Backpropagation: por qué funciona
 
-Backpropagation no es magia ni una receta a memorizar. Es la aplicación sistemática de la regla de la cadena para calcular de manera eficiente cómo afecta cada parámetro a la pérdida final. Como la salida depende de capas intermedias, y esas capas dependen de otras anteriores, el efecto de un peso temprano debe propagarse a través de toda la red.
+Backpropagation no es un hechizo reservado a especialistas. Es la aplicación eficiente de la regla de la cadena para calcular cómo influye cada parámetro sobre la pérdida final. Un peso temprano afecta la salida a través de muchas capas, de modo que derivar ingenuamente sería costoso y redundante. El algoritmo reutiliza derivadas intermedias y hace viable el cálculo.
 
-El algoritmo resuelve un problema computacional muy concreto: evitar recalcular de manera ingenua una enorme cantidad de derivadas repetidas. Entender esto vale mucho más que recordar el nombre del procedimiento.
+Entender eso vale más que memorizar el nombre del procedimiento. Lo que hace backpropagation es resolver un problema de eficiencia en el cálculo de gradientes dentro de una composición de funciones. Una vez visto así, la técnica deja de parecer misteriosa.
 
 ### 15.6 Optimizadores: SGD, momentum y Adam
 
-El gradiente puede calcularse sobre todo el dataset, sobre mini-batches o incluso observación por observación. En la práctica, los mini-batches ofrecen un buen equilibrio entre estabilidad y costo computacional. Sobre esa base aparecen variantes como **momentum**, que suaviza oscilaciones acumulando dirección, y **Adam**, que adapta la magnitud de los pasos usando estimaciones móviles del gradiente.
+El gradiente puede estimarse usando todo el dataset, observaciones individuales o mini-batches. En la práctica, los mini-batches ofrecen un equilibrio razonable entre estabilidad y costo. Sobre esa base aparecen variantes como momentum, que acumula dirección para amortiguar oscilaciones, y Adam, que adapta el tamaño del paso a partir de estimaciones móviles del gradiente.
 
-No cambian el objetivo de fondo, pero sí la dinámica con la que recorremos el paisaje de optimización. Esa dinámica puede marcar la diferencia entre entrenar una red útil y quedar atrapados en una mala solución o en una convergencia ineficiente.
+No cambian el objetivo final, pero sí la dinámica con que la red lo busca. Y esa dinámica importa mucho. Un buen optimizador no reemplaza una mala representación ni una mala arquitectura, pero puede marcar la diferencia entre un entrenamiento que converge de forma útil y otro que se atasca.
 
 ### 15.7 Problemas de entrenamiento y regularización
 
-Las redes profundas pueden sufrir gradientes que se desvanecen o explotan, sobreajuste, dependencia fuerte de la inicialización y sensibilidad a hiperparámetros. Por eso aparecen técnicas como ReLU, batch normalization, weight decay, dropout, early stopping o data augmentation.
+Las redes profundas pueden sufrir gradientes que se desvanecen o explotan, sobreajuste, fuerte sensibilidad a la inicialización y dependencia de hiperparámetros. Por eso aparecen técnicas como ReLU, batch normalization, weight decay, dropout, early stopping o data augmentation.
 
-Cada una responde a un problema concreto. Dropout fuerza a que la red no dependa demasiado de trayectorias específicas de activación. Early stopping corta el entrenamiento cuando la validación deja de mejorar. Weight decay penaliza pesos grandes. La enseñanza importante es que entrenar redes no es solo elegir una arquitectura: es también controlar el proceso de aprendizaje.
+La manera más sana de estudiarlas es recordar qué problema corrige cada una. ReLU ayuda a aliviar ciertas dificultades de gradiente. Batch normalization estabiliza distribuciones internas durante el entrenamiento. Dropout y weight decay actúan como regularizadores. Early stopping detiene el aprendizaje antes de que la red empiece a memorizar ruido. La lista deja de ser un inventario arbitrario cuando se la entiende como respuesta a obstáculos concretos.
 
 ### 15.8 SOM: mapas autoorganizados
 
-Los **Self-Organizing Maps** representan otra cara de las redes: la del aprendizaje no supervisado orientado a preservar cierta topología. Proyectan datos de alta dimensión sobre una grilla, intentando que observaciones parecidas queden cercanas también en el mapa resultante.
+Los Self-Organizing Maps muestran otra cara de las redes neuronales. Allí el foco no está en predecir una etiqueta, sino en proyectar datos de alta dimensión sobre una grilla preservando, en lo posible, vecindad y topología. Aunque hoy tengan menos protagonismo en aplicaciones masivas, conservan un gran valor conceptual.
 
-Aunque hoy tengan menos protagonismo que otras arquitecturas, siguen siendo conceptualmente valiosos porque muestran que la idea de red neuronal no se agota en clasificar o predecir. También puede consistir en organizar representaciones.
+Recuerdan que una red también puede servir para organizar representaciones y explorar estructura, no solo para clasificar. En ese sentido, enlazan el mundo de las redes con problemas clásicos del aprendizaje no supervisado.
 
 ### 15.9 Cuándo usar deep learning y cuándo no
 
-El aprendizaje profundo brilla especialmente con grandes volúmenes de datos no estructurados y con tareas donde la representación jerárquica aporta una ventaja clara, como visión, audio o lenguaje. En muchos problemas tabulares medianos, sin embargo, ensambles de árboles pueden igualar o superar a redes con menor costo y mayor interpretabilidad.
+El aprendizaje profundo brilla especialmente cuando hay grandes volúmenes de datos no estructurados y la posibilidad de aprender representaciones jerárquicas marca una diferencia clara, como ocurre en visión, audio o lenguaje. En cambio, en muchos problemas tabulares de tamaño moderado, ensambles de árboles pueden igualar o superar a redes profundas con menor costo y mayor interpretabilidad.
 
-Usar deep learning por prestigio y no por necesidad es un error frecuente. Elegirlo bien exige preguntar si el problema realmente necesita la complejidad adicional que trae consigo.
+Usar deep learning por prestigio y no por necesidad es un error frecuente. La complejidad solo se justifica cuando resuelve un problema real que métodos más simples no están resolviendo bien.
 
 ## Capítulo 16. NLP aplicado: del texto crudo a una representación útil
 
 ### 16.1 Por qué el texto es un dato especial
 
-El texto no llega al modelo como un vector numérico listo para usar, sino como una secuencia simbólica cargada de ambigüedad, contexto, ironía, polisemia y variación morfológica. La primera tarea del NLP consiste, por eso, en construir una representación adecuada. En texto, representar bien suele ser más decisivo que la elección del clasificador final.
+El texto no llega como un vector numérico listo para alimentar un modelo. Llega como una secuencia simbólica cargada de contexto, ambigüedad, ironía, polisemia y variación morfológica. Antes de modelarlo hay que decidir cómo representarlo, y esa decisión suele ser más importante que la elección del clasificador final.
 
-Además, el lenguaje arrastra historia social, convenciones de género discursivo, ruido de escritura y cambios de dominio. Trabajar con texto obliga a recordar constantemente que los datos no son simplemente números esperando ser procesados.
+En cierto sentido, NLP hace especialmente visible una verdad que ya recorría toda la materia: aprender bien depende de representar bien. La diferencia es que, en texto, esa dependencia se vuelve imposible de ignorar.
 
 ### 16.2 Pipeline clásico de texto
 
-Un pipeline clásico incluye tokenización, normalización, manejo de stopwords, stemming o lematización, construcción de n-gramas y vectorización. Pero no existe un preprocesamiento universalmente correcto. Eliminar negaciones puede destruir señal en análisis de sentimiento. Un stemming agresivo puede colapsar palabras distintas. Mantener signos de puntuación puede ser irrelevante en una tarea y muy informativo en otra.
+Un pipeline clásico de procesamiento de texto incluye tokenización, normalización, filtrado de stopwords, stemming o lematización, construcción de n-gramas y vectorización. Pero no existe un preprocesamiento universalmente correcto. Cada decisión preserva algo y destruye algo.
 
-El criterio correcto es siempre el mismo: cada decisión de preprocesamiento debe justificarse por el tipo de tarea y por la representación que queremos preservar.
+Eliminar negaciones puede arruinar una tarea de sentimiento. Un stemming agresivo puede mezclar palabras que convendría distinguir. Mantener puntuación puede ser irrelevante en una aplicación y decisivo en otra. En texto, más que en muchos otros dominios, cada paso de preprocesamiento es una hipótesis sobre qué parte del lenguaje queremos conservar.
 
 ### 16.3 Bag of Words
 
-En **Bag of Words** cada documento se representa por el conteo de términos de un vocabulario. Se pierde el orden, pero se conserva qué palabras aparecen y con qué frecuencia. La simplificación parece brutal y, en cierto sentido, lo es. Sin embargo, funciona sorprendentemente bien en muchas tareas porque una parte considerable de la señal discriminativa se encuentra en la presencia o ausencia de ciertos términos.
+En Bag of Words, cada documento se representa por conteos de términos de un vocabulario. Se pierde el orden, pero se conserva qué palabras aparecen y con qué frecuencia. La simplificación es brutal y, sin embargo, puede funcionar muy bien.
 
-La lección aquí es pedagógica y metodológica a la vez: una representación simple puede ser muy eficaz si retiene la estructura verdaderamente relevante para la tarea.
+Esa aparente paradoja es instructiva. Muestra que una representación simple puede ser poderosa cuando retiene justo la parte de la estructura que importa para la tarea. No siempre hace falta capturar toda la riqueza del lenguaje para resolver un problema concreto.
 
 ### 16.4 TF-IDF
 
-TF-IDF refina Bag of Words ponderando los términos por frecuencia local y rareza global:
+TF-IDF pondera cada término por su frecuencia en el documento y por su rareza en el corpus:
 
 \[
-\text{tfidf}(t,d)=\text{tf}(t,d)\cdot \log\left(\frac{N}{df(t)}\right)
+\text{tfidf}(t,d)=\text{tf}(t,d)\cdot \log\left(\frac{N}{df(t)}\right).
 \]
 
-La intuición es clara. Si una palabra aparece mucho en un documento pero también en casi todos los documentos, discrimina poco. Si aparece mucho en un documento y poco en el corpus, probablemente aporte señal. TF-IDF no "entiende" el texto, pero mejora notablemente la representación para muchas tareas clásicas.
+La idea intuitiva es clara. Una palabra muy frecuente en un documento, pero igualmente frecuente en todos los documentos, discrimina poco. En cambio, una palabra frecuente en un documento y rara en el corpus probablemente aporte información más específica. TF-IDF no inventa semántica profunda, pero mejora la representación al redistribuir peso hacia los términos más distintivos.
 
 ### 16.5 Naive Bayes multinomial en texto
 
-Naive Bayes multinomial es especialmente natural en representación de conteos o frecuencias. Aunque el supuesto de independencia entre palabras sea fuerte, el modelo rinde bien a menudo porque aprovecha muy bien la estructura dispersa del texto vectorizado.
+Naive Bayes multinomial se adapta especialmente bien a representaciones de conteos o frecuencias. Aunque el supuesto de independencia entre palabras sea fuerte, suele rendir bien porque aprovecha la estructura dispersa y de alta dimensión del texto vectorizado.
 
-Además, ofrece una interpretación pedagógica valiosa: cada término actúa como evidencia a favor o en contra de una clase. Esa lectura ayuda a entender por qué modelos aparentemente simples pueden ser competitivos en NLP clásico.
+Además, ofrece una intuición pedagógica atractiva. Cada término aporta evidencia a favor o en contra de una clase. Al observar cómo se acumula esa evidencia, el modelo vuelve visible una forma simple y poderosa de razonar probabilísticamente sobre documentos.
 
 ### 16.6 Lexicones y análisis de sentimiento
 
-Los enfoques basados en lexicones asignan polaridad o intensidad emocional a palabras y luego agregan esa información para estimar sentimiento. Funcionan como baseline y pueden ser útiles en dominios acotados, pero tropiezan rápido con negaciones, ironía, contexto y polisemia.
+Los enfoques basados en lexicones asignan polaridad o intensidad a palabras y luego agregan esa información para estimar sentimiento. Funcionan bien como baseline o en dominios acotados, pero tropiezan rápido con negaciones, ironía y contexto. La frase "no estuvo nada mal" basta para mostrar el problema. El sentido no es una suma lineal de palabras con signo fijo; depende de composición, orden y situación.
 
-Una expresión como "no estuvo nada mal" basta para mostrar el problema. Las palabras por separado no alcanzan para recuperar el sentido composicional. Los lexicones enseñan algo importante precisamente por sus límites: el lenguaje no es una bolsa de términos con signo fijo.
+Por eso los lexicones son útiles para entender el problema, pero insuficientes cuando el lenguaje empieza a comportarse como lenguaje y no como una bolsa de términos polarizados.
 
 ### 16.7 Texto para clasificación y para regresión
 
-El texto no se usa solo para clasificar. También puede ser insumo de problemas de regresión, como estimar complejidad de tickets, duración esperada de un trámite o valoración numérica de una reseña. En esos casos aparece una cuestión adicional: cómo formular correctamente el target. A veces una regresión es natural; otras conviene pensar en categorías ordinales o en ranking.
+El texto puede usarse para clasificar documentos, pero también para problemas de regresión, como estimar complejidad de tickets, duración esperada de trámites o valoración numérica de reseñas. En esos casos vuelve a aparecer una idea central del curso: el target debe estar cuidadosamente formulado.
 
-Este tipo de problemas es pedagógicamente rico porque obliga a integrar representación textual, elección del target, métrica y validación. En NLP, como en el resto de la ciencia de datos, el modelo nunca está solo.
+NLP no es un mundo separado del resto de la materia. Repite la misma arquitectura conceptual. Hay que definir el problema, representar el dato, elegir un modelo, evaluar con criterio e interpretar sin sobreactuar lo que el sistema sabe.
 
 ### 16.8 Embeddings y representaciones distribuidas
 
-Los embeddings densos, como Word2Vec o GloVe, representan palabras en espacios continuos donde cierta proximidad geométrica captura similitud semántica. Los modelos contextualizados, como BERT y sus derivados, van más lejos: la representación de una palabra cambia según el contexto en el que aparece.
+Los embeddings densos, como Word2Vec o GloVe, representan palabras en espacios continuos donde la proximidad geométrica captura parte de la similitud semántica. Los modelos contextualizados, como BERT, van más lejos: la representación de una palabra depende del contexto en el que aparece.
 
-La historia general del NLP puede leerse como una historia de representaciones cada vez más expresivas. Incluso si el curso trabaja sobre todo con BoW y TF-IDF, entender esta evolución ayuda a ver por qué la representación es el verdadero corazón del campo.
+La historia del NLP puede leerse, en buena medida, como una historia sobre representaciones cada vez más ricas. Incluso cuando se trabaja con métodos clásicos, entender esa evolución ayuda a ver por qué el corazón del área no está solo en el clasificador, sino en el modo en que el lenguaje queda traducido al espacio donde el aprendizaje será posible.
 
 ### 16.9 Riesgos y sesgos en NLP
 
-El lenguaje contiene sesgos sociales, culturales e históricos. Un modelo entrenado sobre corpus sesgados puede reproducirlos o amplificarlos. Además, ironía, jergas, dominio específico o cambios de contexto pueden degradar severamente el desempeño.
+El lenguaje arrastra sesgos sociales, culturales e históricos. Un modelo entrenado sobre corpus sesgados puede reproducirlos o amplificarlos. Además, ironía, jerga, dominio específico y cambio de contexto pueden degradar el desempeño mucho más de lo que sugiere una métrica promedio.
 
-Por eso el NLP serio no termina en una métrica promedio. Requiere análisis de errores, revisión cualitativa de ejemplos y, cuando corresponde, evaluación segmentada por dominios o subgrupos. El texto exige tanto técnica como sensibilidad interpretativa.
+Por eso el NLP serio necesita análisis de errores cualitativo, revisión de ejemplos y, cuando corresponde, evaluación segmentada. Trabajar con texto exige técnica, pero también sensibilidad interpretativa.
 
 ## Parte IX. Extensiones metodológicas y criterio profesional
 
-Toda la materia converge, finalmente, en una pregunta más amplia que la de "qué modelo rinde mejor". ¿Cómo se usa de manera responsable un sistema construido con datos? ¿Cómo se monitorea cuando el mundo cambia? ¿Cómo se comunica lo que sí y lo que no puede afirmarse? Esta última parte reúne extensiones metodológicas y criterios de práctica que distinguen a un usuario de herramientas de un profesional capaz de sostener decisiones técnicas.
+Toda la materia converge, finalmente, en una pregunta más amplia que "qué modelo rinde mejor". Cómo se usa responsablemente un sistema construido con datos. Cómo se monitorea cuando el mundo cambia. Cómo se comunica lo que sí puede decirse y lo que no. Cómo se evita que una métrica momentáneamente buena oculte fragilidades conceptuales o institucionales.
 
 ## Capítulo 17. Series temporales: cuando el tiempo no puede ignorarse
 
 ### 17.1 Qué cambia cuando hay dependencia temporal
 
-En una serie temporal las observaciones están ordenadas y suelen depender unas de otras. Eso rompe la comodidad del supuesto i.i.d. que subyace a muchos métodos estándar. Si mezclamos temporalmente los datos, podemos filtrar futuro hacia el pasado y construir una validación artificialmente optimista.
+En una serie temporal las observaciones están ordenadas y suelen depender unas de otras. Eso rompe el supuesto i.i.d. que muchos métodos generales toman como punto de partida. No basta con agregar una columna de fecha y seguir igual. Cuando el tiempo importa, cambia la lógica entera del problema.
 
-Cuando el tiempo importa, cambia la manera de definir features, de partir los datos y de interpretar los errores. No se trata solo de agregar una columna de fecha. Se trata de reconocer que la estructura temporal modifica la lógica entera del problema.
+Cambian las features, porque ahora una parte importante de la señal está en los lags y en las ventanas. Cambia la validación, porque el futuro no debe contaminar el entrenamiento. Cambia la idea de generalización, porque no solo interesa funcionar fuera de muestra, sino funcionar hacia adelante en un sistema que puede derivar.
 
 ### 17.2 Tendencia, estacionalidad, ciclo y ruido
 
-Una serie suele pensarse como combinación de tendencia, estacionalidad, ciclo y ruido. La **tendencia** describe un movimiento de largo plazo. La **estacionalidad** introduce patrones periódicos relativamente regulares. Los **ciclos** capturan oscilaciones más largas y menos rígidas. El **ruido** recoge variación no explicada.
+Una serie suele pensarse como combinación de tendencia, estacionalidad, ciclo y ruido. La tendencia describe movimientos de largo plazo. La estacionalidad recoge patrones periódicos regulares. Los ciclos reflejan oscilaciones más largas y menos rígidas. El ruido representa la parte no explicada.
 
-Esta descomposición no es meramente descriptiva. Ayuda a decidir qué features temporales construir y qué baselines tienen sentido. En series temporales, los modelos ingenuos son especialmente importantes: repetir el último valor, copiar el valor del período análogo anterior o usar un promedio histórico puede ser una referencia muy exigente. Si un modelo sofisticado no supera con claridad a un baseline temporal razonable, la complejidad extra probablemente no esté justificada.
+Esta descomposición no es una taxonomía decorativa. Organiza la intuición sobre qué parte del comportamiento conviene modelar explícitamente y qué baselines tienen sentido. En series temporales, de hecho, los baselines ingenuos son mucho más competitivos de lo que muchos estudiantes imaginan. Repetir el último valor o el valor del mismo período anterior es una vara inicial bastante exigente.
 
 ### 17.3 Lags, rolling windows y features temporales
 
-Las features temporales típicas son los **lags**, las medias móviles, los acumulados, las diferencias y los indicadores de calendario. Todas intentan condensar dependencia temporal en una representación utilizable por el modelo.
+Las features temporales típicas incluyen lags, medias móviles, acumulados, diferencias e indicadores de calendario. Todas intentan condensar dependencia temporal en variables utilizables por un modelo. Pero la regla causal aquí es estricta: una feature construida en el instante \(t\) solo puede depender de información disponible hasta \(t\).
 
-La regla crítica es causal: una feature construida en \(t\) solo puede depender de información disponible hasta \(t\). Parece obvio, pero muchas fugas temporales nacen precisamente de violar esta condición al construir rolling windows o agregados retrospectivos de forma incorrecta.
+Muchas fugas temporales nacen de olvidar esa condición al construir ventanas móviles o agregados. El error es especialmente traicionero porque la variable resultante parece numéricamente correcta. Solo deja de ser legítima cuando uno recuerda cuál era el instante real de decisión.
 
 ### 17.4 Evaluación temporal
 
-La validación temporal debe imitar el uso real del sistema. Los esquemas walk-forward entrenan en una ventana histórica y validan en un bloque futuro, repitiendo el proceso con ventanas crecientes o deslizantes. Esto permite medir no solo precisión promedio, sino también estabilidad a lo largo del tiempo.
+La validación temporal debe imitar el uso futuro del sistema. Los esquemas walk-forward entrenan en una ventana histórica y validan en un bloque posterior, repitiendo el procedimiento con ventanas crecientes o deslizantes. Esa lógica respeta la flecha del tiempo y deja ver si el modelo se sostiene a medida que cambian las condiciones.
 
-En problemas temporales esa estabilidad es central. Un modelo puede rendir muy bien en un tramo y deteriorarse después por cambios de contexto, estacionalidad o comportamiento. Evaluar bien es, también aquí, diseñar un experimento que respete la estructura del mundo.
+En problemas temporales no importa solo la precisión promedio. Importa la estabilidad a lo largo del tiempo. Un modelo puede lucir muy bien en un tramo y degradarse luego por deriva, estacionalidades nuevas o cambios de contexto. Medir solo un promedio puede esconder esa fragilidad.
 
 ## Capítulo 18. Interpretabilidad, MLOps, sesgo y gobernanza
 
 ### 18.1 Interpretabilidad intrínseca y explicabilidad post hoc
 
-No todos los modelos son igual de transparentes. En regresión lineal o árboles pequeños, la estructura del modelo ya ofrece cierto grado de interpretabilidad intrínseca. En ensambles complejos y redes profundas esa transparencia disminuye y aparecen técnicas **post hoc** que intentan resumir el comportamiento del modelo.
+Algunos modelos son más transparentes por construcción, como la regresión lineal o los árboles pequeños. Otros requieren técnicas post hoc para resumir su comportamiento. Esa distinción importa mucho porque una explicación post hoc no convierte al modelo en simple. Solo ofrece una ventana útil, parcial y muchas veces dependiente de supuestos.
 
-La distinción importa mucho. Una explicación post hoc no convierte al modelo en simple; apenas construye una aproximación o una narrativa útil sobre su comportamiento. Confundir explicación con comprensión total es una fuente frecuente de exceso de confianza.
+Confundir explicación con comprensión total es una fuente frecuente de exceso de confianza. Un gráfico elegante no anula la complejidad del sistema que intenta resumir.
 
 ### 18.2 Importancia global y explicación local
 
-La **importancia global** intenta responder qué variables influyen más en el comportamiento general del modelo. Las explicaciones **locales** intentan responder por qué un caso particular recibió cierta predicción. Ambas son valiosas, pero ninguna debe leerse de forma ingenua.
+La importancia global intenta responder qué variables influyen más en el comportamiento general del modelo. Las explicaciones locales intentan entender por qué un caso particular recibió cierta predicción. Herramientas como permutation importance, PDP, LIME o SHAP pueden ser muy valiosas si se interpretan con cuidado.
 
-Herramientas como permutation importance, PDP, LIME o SHAP pueden ofrecer información muy útil si se entienden sus supuestos. Un PDP puede resultar engañoso cuando hay fuerte correlación entre variables. SHAP distribuye contribuciones bajo una lógica bien definida, pero no transforma asociación en causalidad. La regla es clara: explicar un modelo no es demostrar qué pasaría si interviniéramos sobre el mundo.
+Pero ninguna de ellas transforma una asociación observada en una afirmación causal. La frontera entre explicar el comportamiento del modelo y explicar el mundo debe permanecer clara. Cuando esa frontera se desdibuja, la interpretabilidad deja de ser una ayuda y pasa a ser una forma sofisticada de confusión.
 
 ### 18.3 Comunicar resultados con honestidad técnica
 
-Un resultado técnicamente correcto y mal comunicado puede inducir decisiones peores que un modelo más simple y mejor explicado. Comunicar bien no es simplificar hasta vaciar, sino dejar claro sobre qué datos se evaluó el modelo, qué métricas se usaron, qué límites persisten, qué segmentos funcionan peor y qué tipo de decisión respalda realmente la salida.
+Un resultado técnicamente correcto y mal comunicado puede producir peores decisiones que un modelo más simple y mejor explicado. Comunicar bien no es vaciar de contenido técnico la discusión, sino poner en palabras comprensibles lo que de verdad sabemos y lo que sigue siendo incierto.
 
-Decir "el modelo obtuvo 0.89 de AUC" rara vez alcanza. Hace falta explicar si esa cifra es estable, si la clase está desbalanceada, si las probabilidades están calibradas, si el resultado cambia mucho por subgrupo y cuál es el costo operativo del error. La comunicación es parte del trabajo técnico, no su envoltorio.
+Decir que un modelo tiene AUC 0.89 casi nunca alcanza. Hace falta aclarar sobre qué datos se evaluó, con qué estabilidad, con qué desbalance, con qué calibración, con qué desempeño por subgrupos y con qué costo operativo del error. La honestidad técnica consiste justamente en no presentar una cifra como si resumiera todo lo importante.
 
 ### 18.4 Reproducibilidad y ciclo de vida del modelo
 
-Una solución de ciencia de datos no termina en un notebook. Para ser profesional debe poder reproducirse, auditarse y mantenerse. Eso exige versionar datos y código, registrar hiperparámetros, preservar artefactos del modelo y documentar cómo se obtuvo cada resultado.
+Una solución profesional no termina en un notebook. Debe poder reproducirse, auditarse, mantenerse y, si hace falta, retirarse. Eso exige versionar código y datos, registrar hiperparámetros, preservar artefactos y documentar el proceso. Sin reproducibilidad, comparar experimentos o investigar fallas se vuelve innecesariamente difícil.
 
-La reproducibilidad no es solo una virtud académica. Sin ella es casi imposible comparar experimentos, diagnosticar fallas, explicar cambios de performance o repetir un entrenamiento con confianza. En producción, además, aparece el problema del ciclo de vida: cómo desplegar, monitorear, reentrenar y retirar modelos de manera controlada.
+Además, una vez desplegado, el modelo entra en un ciclo de vida. Hay que monitorearlo, reentrenarlo cuando corresponde, revisar su degradación y administrar su reemplazo. La parte operativa no es un apéndice de la teoría. Es el lugar donde la teoría demuestra si realmente estaba pensada para el mundo.
 
 ### 18.5 Drift: cuando el mundo cambia
 
-Después del despliegue, el problema sigue moviéndose. Puede cambiar la distribución de las features (**data drift**) o puede cambiar la relación entre features y target (**concept drift**). En ambos casos, un modelo entrenado sobre el pasado puede empezar a degradarse.
+Después del despliegue, el mundo sigue moviéndose. Puede cambiar la distribución de las features, lo que suele llamarse data drift, o puede cambiar la relación entre features y target, lo que se conoce como concept drift. En ambos casos, un modelo entrenado sobre el pasado puede degradarse aunque su implementación no tenga ningún error.
 
-Por eso el monitoreo no es un lujo. Hay que vigilar distribución de entradas, desempeño, calibración y comportamiento por segmentos críticos. Un modelo útil no es solo uno que fue bueno el día que se evaluó, sino uno cuyo deterioro puede detectarse a tiempo.
+Por eso el monitoreo no es opcional. Hay que mirar entradas, desempeño, calibración y comportamiento por segmentos. Un modelo útil no es solo el que funcionó bien el día de la validación, sino el que puede ser supervisado mientras las condiciones del mundo cambian.
 
 ### 18.6 Fuentes de sesgo algorítmico
 
-El sesgo puede entrar en muchas etapas: muestreo, etiquetado, elección del target, variables proxy, historia institucional o uso del modelo fuera del dominio donde fue entrenado. Un modelo con muy buena métrica global puede perjudicar sistemáticamente a subgrupos específicos y ocultarlo detrás de un promedio tranquilizador.
+El sesgo puede entrar por la muestra, por el etiquetado, por la definición del target, por variables proxy, por la historia institucional o por el uso del modelo fuera del dominio para el que fue pensado. Una métrica promedio aceptable puede ocultar daños sistemáticos sobre subgrupos específicos.
 
-Por eso la evaluación responsable exige mirar cortes segmentados, estabilidad por población y consecuencias reales del error. Nociones como paridad demográfica o igualdad de oportunidad ayudan a organizar la discusión, pero ninguna define por sí sola la solución correcta. La equidad no es un número único: es una tensión entre criterios técnicos, normativos y operativos.
+Por eso evaluar de manera responsable exige mirar cortes segmentados y consecuencias reales del error. La equidad no se reduce a un único número. Es una tensión entre criterios técnicos, legales, normativos y operativos que debe discutirse de frente.
 
 ### 18.7 Gobernanza mínima responsable
 
-La gobernanza de modelos incluye documentación, trazabilidad, criterios de aprobación, monitoreo continuo, auditoría y, cuando corresponde, revisión humana. No es un apéndice moral separado de la técnica. Es la forma institucional de garantizar que el sistema se use dentro de sus condiciones de validez.
+La gobernanza de modelos incluye documentación, trazabilidad, criterios de aprobación, monitoreo, auditoría y, cuando corresponde, revisión humana. No es un suplemento moral separado de la técnica. Es la forma institucional de asegurar que el sistema se use dentro de sus condiciones de validez y que sus límites no queden ocultos detrás de la automatización.
 
-Cuanto más importante es la decisión asistida por el modelo, más necesaria se vuelve esta capa de control. La buena práctica profesional no termina en el mejor score disponible.
+Cuanto más importante es la decisión asistida por el modelo, más necesaria se vuelve esta capa de control. Allí se juega buena parte de la diferencia entre una solución técnicamente interesante y una solución profesionalmente responsable.
 
 ## Capítulo 19. Ejemplo integrador y estrategia de estudio para dominio experto
 
 ### 19.1 Un ejemplo completo: predicción de morosidad
 
-Consideremos un problema integral de riesgo: predecir si una solicitud aprobada incurrirá en mora superior a 90 días dentro de los próximos 12 meses. Una formulación rigurosa podría ser: "Para cada solicitud aprobada al momento de originación, estimar la probabilidad de mora mayor a 90 días en los siguientes 12 meses, usando exclusivamente información disponible al momento del otorgamiento". Con esa sola frase ya quedan fijados unidad de análisis, target, horizonte temporal y restricción de información.
+Consideremos un problema integral de riesgo: estimar si una solicitud aprobada incurrirá en mora mayor a noventa días dentro de los próximos doce meses. Si la formulación se escribe con rigor, diría algo así: para cada solicitud aprobada al momento de originación, estimar la probabilidad de mora mayor a noventa días durante los siguientes doce meses usando exclusivamente información disponible al momento del otorgamiento.
 
-El trabajo posterior organiza toda la materia. Primero, revisar calidad de datos: ingresos faltantes, consistencia laboral, historial crediticio, posible fuga por variables construidas después del otorgamiento. Luego, diseñar la representación: imputación segmentada, indicadores de faltante, codificación de categóricas, creación de razones financieras y tratamiento de extremos. Después, validar sin autoengaño: partición temporal o por cohortes si el problema lo requiere, métricas sensibles al desbalance y análisis de calibración. Recién entonces tiene sentido comparar una logística regularizada, un Random Forest y un XGBoost, no solo por score, sino por estabilidad, interpretabilidad y costo operativo de sus errores.
+Con esa sola frase se ordena toda la materia. La unidad de análisis es la solicitud. El target queda definido operativamente. El horizonte temporal es explícito. La restricción de información también. A partir de ahí se puede revisar calidad de datos, detectar faltantes e inconsistencias, cuidar leakage, construir features financieras plausibles, elegir una validación coherente con el tiempo y comparar, por ejemplo, una logística regularizada con un Random Forest o un XGBoost. La discusión ya no se limita al score. Incluye estabilidad, interpretabilidad, costo del error y condiciones de uso.
 
-Este ejemplo sintetiza la arquitectura completa del curso. La pregunta central nunca es solo "qué modelo gana", sino "qué sistema de decisión queda mejor justificado por los datos, la validación y el contexto".
+Lo valioso del ejemplo no es el dominio financiero en sí mismo. Es ver cómo encajan en una sola arquitectura todas las piezas dispersas del curso. Cuando el ejemplo se entiende así, deja de ser un caso aislado y pasa a ser una plantilla mental para atacar problemas nuevos.
 
 ### 19.2 Qué debería poder hacer un estudiante al terminar
 
-Al final de la materia, un estudiante sólido debería poder traducir una necesidad real a un problema modelable, definir con precisión unidad de análisis y target, detectar leakage antes de entrenar, justificar una estrategia de preprocesamiento según las variables y el modelo, elegir métricas coherentes con el costo del error y explicar la lógica profunda de las familias de métodos estudiadas.
+Un estudiante sólido debería poder traducir una necesidad real a un problema modelable, definir con precisión la unidad de análisis y el target, detectar posibles fugas de información, justificar un preprocesamiento según la naturaleza del dato y del modelo, elegir métricas coherentes con el costo del error e interpretar resultados sin exagerar lo que el sistema realmente sabe.
 
-Pero ese dominio técnico no basta por sí solo. También debería poder distinguir predicción de causalidad, interpretar resultados sin sobreafirmar y comparar técnicas atendiendo a sus supuestos, sus ventajas y sus límites. En otras palabras, debería poder argumentar.
+También debería poder distinguir con claridad entre predicción y causalidad, comparar técnicas por sus supuestos y límites, y explicar con sus propias palabras por qué una decisión metodológica tiene sentido. Una formación genuina no se reconoce por la cantidad de herramientas recordadas, sino por la capacidad de argumentar con ellas.
 
 ### 19.3 Cómo suelen evaluar los exámenes
 
-Los exámenes de esta materia suelen castigar menos la falta de memoria puntual que la falta de estructura argumentativa. No alcanza con definir precision, entropía o PCA. Hay que explicar qué problema resuelven, por qué se introducen, cuándo son útiles y qué errores corrigen o pueden inducir.
+Los exámenes serios suelen castigar menos la falta de memoria puntual que la falta de estructura conceptual. No alcanza con definir entropía, F1 o PCA. Lo que normalmente se pide es poder reconstruir qué problema resuelven, por qué aparecen, cómo se interpretan y qué errores conceptuales comete alguien que los usa de manera ingenua.
 
-Las preguntas importantes casi siempre apuntan a esas relaciones: por qué este problema es clasificación y no regresión; por qué accuracy engaña; por qué un árbol profundo sobreajusta; qué preserva PCA y por qué no es lo mismo que t-SNE; cómo interpretar un coeficiente logístico; qué cambia cuando hay tiempo. La respuesta excelente define, motiva, formaliza e ilustra.
+Por eso conviene estudiar buscando conexiones. Por qué este problema se formula como clasificación y no como regresión. Por qué accuracy engaña cuando las clases están desbalanceadas. Por qué un árbol profundo puede sobreajustar. Qué preserva PCA y por qué no es equivalente a t-SNE. Cómo se interpreta un coeficiente logístico. Qué cambia cuando el tiempo importa. Esas son las preguntas que revelan si hubo comprensión o solo acumulación de definiciones.
 
 ### 19.4 Errores que más suelen costar
 
-Los errores más caros, académica y profesionalmente, son bastante constantes. Elegir algoritmo antes de formular el problema. Usar métricas por costumbre. Preprocesar antes del split. Confundir correlación con causalidad. Interpretar clusters como verdades naturales. Creer que más complejidad implica automáticamente mejor generalización. Reportar una única métrica sin analizar estabilidad ni subgrupos.
+Los errores más caros, tanto académica como profesionalmente, suelen repetirse. Elegir algoritmo antes de formular el problema. Usar métricas por costumbre. Preprocesar antes del split. Confundir correlación con causalidad. Tratar clusters como si fueran clases naturales descubiertas en el mundo. Suponer que más complejidad equivale automáticamente a mejor generalización. Reportar una sola métrica sin analizar estabilidad ni subgrupos.
 
-Todos esos errores tienen una raíz común: perder de vista la arquitectura completa del razonamiento y quedarse con una parte aislada del pipeline. La materia, bien estudiada, existe justamente para evitar esa fragmentación.
+Todos esos errores comparten una raíz. Nacen de perder de vista la arquitectura completa del razonamiento y quedarse con una técnica aislada. La ciencia de datos empieza a madurar cuando uno deja de ver herramientas sueltas y empieza a ver decisiones encadenadas.
 
 ### 19.5 Cómo estudiar esta materia de verdad
 
-Estudiar bien esta disciplina requiere trabajar en tres capas simultáneas. La primera es la intuición: poder explicar cada concepto con palabras claras y sin esconderse detrás de la notación. La segunda es la formalización: poder escribir las expresiones esenciales, interpretar cada símbolo y entender qué problema resuelven. La tercera es la aplicación: saber cuándo una técnica tiene sentido, qué supuestos la sostienen, cómo se evalúa y qué límites tiene.
+Estudiar bien esta disciplina exige moverse en varias capas al mismo tiempo. Hay que poder explicar un concepto con palabras simples y precisas, escribir sus expresiones esenciales cuando hace falta y, sobre todo, justificar en qué contextos conviene usarlo y en cuáles no. La intuición sin formalización se vuelve difusa. La formalización sin intuición se vuelve frágil. El criterio de uso es lo que las conecta.
 
-Una práctica muy efectiva consiste en tomar cada tema y responder, por escrito, siempre las mismas preguntas: qué problema obliga a introducirlo, cuál es su intuición, cómo se formula, cómo se interpreta, qué ejemplo lo aclara, en qué falla una comprensión ingenua y con qué otros temas se conecta. Cuando eso se vuelve posible de manera sostenida, deja de haber "resumen" y empieza a haber dominio.
+Una práctica especialmente fecunda consiste en tomar cada tema y reconstruirlo desde el origen. Qué problema hace necesaria esta idea. Qué intuición la vuelve razonable. Qué expresión formal la fija con precisión. Qué ejemplo la aclara. Con qué conceptos se conecta y dónde falla una comprensión ingenua. Cuando uno puede hacer eso sin depender de un guion externo, deja de memorizar y empieza a dominar.
 
 ## Cierre
 
-La ciencia de datos se vuelve realmente comprensible cuando deja de verse como una colección de técnicas y empieza a verse como una arquitectura intelectual. Primero se formula bien el problema. Luego se examina críticamente el dato. Después se construye una representación adecuada, se elige un modelo compatible con esa representación, se evalúa sin autoengaño, se interpreta con honestidad y se decide con responsabilidad.
+La ciencia de datos se vuelve realmente comprensible cuando deja de verse como una colección de técnicas y pasa a verse como una arquitectura intelectual. Primero se formula bien el problema. Luego se examina críticamente el dato. Después se construye una representación adecuada, se elige un modelo compatible con esa representación, se evalúa con honestidad, se interpreta sin exageraciones y se decide con responsabilidad.
 
-Cada bloque de la materia ocupa un lugar preciso en esa arquitectura. Los fundamentos definen el lenguaje del problema. El análisis de calidad y el EDA enseñan a leer evidencia imperfecta. El preprocesamiento y la ingeniería de variables construyen el espacio en el que el aprendizaje será posible o fallará. La validación protege contra conclusiones ilusorias. Los modelos supervisados muestran distintas formas de sesgo inductivo. El aprendizaje no supervisado y la reducción de dimensión obligan a pensar qué estructura queremos preservar. Las redes y el NLP muestran que representar bien puede ser más importante que elegir un algoritmo de moda. La interpretabilidad, el MLOps y la gobernanza recuerdan que un modelo útil no termina en una métrica.
+Cada bloque de la materia ocupa un lugar preciso en esa arquitectura. Los fundamentos enseñan a no confundir fenómeno con dato. El análisis de calidad y el EDA enseñan a leer evidencia imperfecta. El preprocesamiento construye el espacio en el que el aprendizaje será posible o fracasará. La validación protege contra conclusiones ilusorias. Los modelos supervisados muestran distintas maneras de imponer estructura. El aprendizaje no supervisado y la reducción de dimensión obligan a pensar qué clase de orden queremos preservar. Las redes y el NLP recuerdan que, muchas veces, representar bien es más importante que seguir modas. La interpretabilidad, el monitoreo y la gobernanza muestran que un modelo útil no termina en una métrica.
 
-Si al terminar este tratado el lector puede enfrentarse a un problema nuevo y preguntarse, con precisión, qué quiere predecir o comprender, con qué datos, bajo qué supuestos, con qué riesgo de error, con qué validación y con qué límites, entonces la materia habrá cumplido su objetivo. No habrá aprendido solo herramientas. Habrá aprendido a pensar con datos.
+Si al terminar este tratado el lector puede enfrentarse a un problema nuevo y preguntarse, con claridad, qué quiere entender o anticipar, con qué datos, bajo qué supuestos, con qué riesgo de error, con qué validación y con qué límites, entonces la materia habrá quedado comprendida desde la base. No habrá memorizado una secuencia de herramientas. Habrá aprendido a pensar con datos.
